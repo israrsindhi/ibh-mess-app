@@ -463,12 +463,37 @@
         window.open(`https://wa.me/92${s.phone.substring(1)}?text=Assalam-o-Alaikum ${s.name}, this is a reminder from Indus Boys Hostel.`, '_blank');
     }
 
+    // --- FORM WITH PHOTO UPLOAD ---
+    window.previewPhoto = (input) => {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('profilePreview').src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    };
+
     function renderForm(el) {
         const isEdit = currentTab === 'edit';
         const s = isEdit ? state.students.find(x=>x.id===activeStudentId) : null;
+        const photoUrl = s?.photo || DEFAULT_IMG;
+
         el.innerHTML = `<div class="fade-in bg-white p-8 rounded-[2.5rem] card-shadow">
             <h2 class="text-xl font-black text-slate-800 mb-8 uppercase tracking-widest">${isEdit?'Update':'Register'} Resident</h2>
             <form id="studentForm" class="space-y-4">
+                
+                <div class="flex flex-col items-center mb-6">
+                    <div class="relative group cursor-pointer" onclick="document.getElementById('photoInput').click()">
+                        <img id="profilePreview" src="${photoUrl}" class="w-24 h-24 rounded-[2rem] object-cover border-4 border-emerald-50 shadow-lg">
+                        <div class="absolute inset-0 bg-black/40 rounded-[2rem] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <i class="fas fa-camera text-white"></i>
+                        </div>
+                    </div>
+                    <input type="file" id="photoInput" accept="image/*" class="hidden" onchange="previewPhoto(this)">
+                    <p class="text-[10px] font-bold text-slate-400 mt-2 uppercase">Click image to upload</p>
+                </div>
+
                 <input name="name" value="${s?.name||''}" placeholder="Name" required class="w-full p-4 bg-slate-50 rounded-2xl text-sm font-bold border-none">
                 <input name="roomName" value="${s?.roomName||''}" placeholder="Room No" required class="w-full p-4 bg-slate-50 rounded-2xl text-sm font-bold border-none">
                 <input name="phone" value="${s?.phone||''}" placeholder="WhatsApp No" required class="w-full p-4 bg-slate-50 rounded-2xl text-sm font-bold border-none">
@@ -479,12 +504,31 @@
                 <button type="submit" class="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black uppercase text-sm tracking-widest">${isEdit?'Save Changes':'Register Resident'}</button>
             </form>
         </div>`;
+
         document.getElementById('studentForm').onsubmit = (e) => {
             e.preventDefault();
             const fd = new FormData(e.target);
-            const data = { id:isEdit?activeStudentId:'ST'+Date.now(), name:fd.get('name'), roomName:fd.get('roomName'), phone:fd.get('phone'), hFee:Number(fd.get('hFee')), mFee:Number(fd.get('mFee')), photo:s?.photo||DEFAULT_IMG, joined:s?.joined||new Date().toISOString().split('T')[0] };
-            if(isEdit) state.students = state.students.map(x=>x.id===activeStudentId?data:x); else state.students.push(data);
-            sync(); changeTab('rooms');
+            const currentPhotoSrc = document.getElementById('profilePreview').src;
+            
+            const data = { 
+                id: isEdit ? activeStudentId : 'ST' + Date.now(), 
+                name: fd.get('name'), 
+                roomName: fd.get('roomName'), 
+                phone: fd.get('phone'), 
+                hFee: Number(fd.get('hFee')), 
+                mFee: Number(fd.get('mFee')), 
+                photo: currentPhotoSrc, 
+                joined: s?.joined || new Date().toISOString().split('T')[0] 
+            };
+
+            if(isEdit) {
+                state.students = state.students.map(x => x.id === activeStudentId ? data : x);
+            } else {
+                state.students.push(data);
+            }
+            
+            sync(); 
+            changeTab('rooms');
         };
     }
 
