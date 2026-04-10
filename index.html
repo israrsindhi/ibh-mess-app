@@ -1,748 +1,449 @@
---- START OF FILE Paste April 10, 2026 - 12:12PM ---
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>Indus Hostel | Ultimate Management Pro</title>
+  <title>Indus Hostel | Management Pro v7</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
-    body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; }
-    .tab-active { color: #2c7a3f; border-top: 4px solid #2c7a3f; background: #f0fdf4; }
-    .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); }
-    
-    /* Animation for buttons */
-    .active-scale:active { transform: scale(0.95); }
-
-    /* Theme Colors */
-    .btn-b { background-color: #f97316; } 
-    .btn-l { background-color: #3b82f6; } 
-    .btn-d { background-color: #a855f7; } 
-
-    /* Receipt Styling for HTML-to-Image */
-    .receipt-container {
-      width:650px; background:#fff; border:3px solid #2c7a3f; padding:0; position:relative; font-family: 'Inter', sans-serif;
-    }
-    .receipt-header { background:#2c7a3f; color:#fff; display:flex; align-items:center; padding:20px; }
-    .receipt-title { font-size:26px; font-weight:800; letter-spacing: -0.02em; }
-    .receipt-line { border-bottom:1px solid #cbd5e1; display:inline-block; min-width:150px; padding-left:5px; font-weight: 600; color: #1e293b; }
-    .receipt-amount-box { border:3px solid #2c7a3f; padding:15px 25px; font-size:28px; font-weight:900; color: #2c7a3f; border-radius: 12px; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; color: #0f172a; margin: 0; padding: 0; }
+    .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+    .nav-active { color: #059669 !important; transform: translateY(-2px); }
+    .nav-active i { background: #ecfdf5; padding: 8px; border-radius: 12px; }
+    .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
+    .btn-b { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); }
+    .btn-l { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+    .btn-d { background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%); }
+    .fade-in { animation: fadeIn 0.3s ease-in; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    input:focus { outline: none; ring: 2px; ring-color: #10b981; }
+    .receipt-container { width:650px; background:#fff; border:3px solid #059669; }
   </style>
 </head>
 <body class="antialiased">
 
-  <div class="min-h-screen pb-24">
-    <!-- Main Header -->
-    <header class="sticky top-0 z-40 glass border-b border-slate-200 px-6 py-4 flex justify-between items-center shadow-sm">
+  <div class="min-h-screen pb-32">
+    <!-- Header -->
+    <header class="sticky top-0 z-50 glass px-6 py-4 flex justify-between items-center">
       <div class="flex items-center gap-3">
-        <div class="w-11 h-11 bg-[#2c7a3f] rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-200">
-          <i class="fas fa-building-shield text-lg"></i>
+        <div class="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-200">
+          <i class="fas fa-hotel"></i>
         </div>
         <div>
-          <h1 class="text-lg font-extrabold tracking-tight text-slate-800">Indus Boys Hostel</h1>
-          <p class="text-[10px] uppercase font-black text-[#2c7a3f] tracking-[0.2em]">Management System</p>
+          <h1 class="text-base font-extrabold text-slate-800 leading-tight">Indus Boys Hostel</h1>
+          <p class="text-[9px] uppercase font-bold text-emerald-600 tracking-widest">Management System</p>
         </div>
       </div>
-      <button id="globalBackBtn" class="hidden h-10 w-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-600 transition hover:bg-slate-200">
+      <button id="globalBackBtn" class="hidden h-10 w-10 bg-white rounded-full flex items-center justify-center text-slate-600 shadow-sm border border-slate-100">
         <i class="fas fa-arrow-left"></i>
       </button>
     </header>
 
-    <!-- Content Area -->
-    <main id="app" class="p-4 max-w-md mx-auto"></main>
+    <!-- Main Content Area -->
+    <main id="app" class="p-4 max-w-lg mx-auto"></main>
 
-    <!-- Bottom Navigation -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200 flex justify-around items-center py-3 z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.05)]">
-      <button data-tab="dashboard" class="nav-item flex flex-col items-center gap-1.5 px-4 text-slate-400">
-        <i class="fas fa-chart-line text-xl"></i>
-        <span class="text-[9px] font-bold">Home</span>
+    <!-- Navigation Bar -->
+    <nav class="fixed bottom-0 left-0 right-0 glass border-t border-slate-200 flex justify-around items-center py-4 z-50 rounded-t-[2rem] shadow-2xl">
+      <button onclick="changeTab('dashboard')" id="nav-dashboard" class="nav-item flex flex-col items-center gap-1 text-slate-400">
+        <i class="fas fa-home text-xl"></i>
+        <span class="text-[10px] font-bold">Home</span>
       </button>
-      <button data-tab="rooms" class="nav-item flex flex-col items-center gap-1.5 px-4 text-slate-400">
-        <i class="fas fa-people-roof text-xl"></i>
-        <span class="text-[9px] font-bold">Residents</span>
+      <button onclick="changeTab('rooms')" id="nav-rooms" class="nav-item flex flex-col items-center gap-1 text-slate-400">
+        <i class="fas fa-users text-xl"></i>
+        <span class="text-[10px] font-bold">Residents</span>
       </button>
-      <button data-tab="mess" class="nav-item flex flex-col items-center gap-1.5 px-4 text-slate-400">
-        <i class="fas fa-plate-wheat text-xl"></i>
-        <span class="text-[9px] font-bold">Mess</span>
+      <button onclick="changeTab('mess')" id="nav-mess" class="nav-item flex flex-col items-center gap-1 text-slate-400">
+        <i class="fas fa-utensils text-xl"></i>
+        <span class="text-[10px] font-bold">Mess</span>
       </button>
-      <button data-tab="finance" class="nav-item flex flex-col items-center gap-1.5 px-4 text-slate-400">
-        <i class="fas fa-money-check-dollar text-xl"></i>
-        <span class="text-[9px] font-bold">Fees</span>
+      <button onclick="changeTab('finance')" id="nav-finance" class="nav-item flex flex-col items-center gap-1 text-slate-400">
+        <i class="fas fa-wallet text-xl"></i>
+        <span class="text-[10px] font-bold">Fees</span>
       </button>
-      <button data-tab="reports" class="nav-item flex flex-col items-center gap-1.5 px-4 text-slate-400">
+      <button onclick="changeTab('reports')" id="nav-reports" class="nav-item flex flex-col items-center gap-1 text-slate-400">
         <i class="fas fa-file-invoice text-xl"></i>
-        <span class="text-[9px] font-bold">Reports</span>
+        <span class="text-[10px] font-bold">Reports</span>
       </button>
     </nav>
   </div>
 
-  <!-- Hidden areas for generation -->
   <div id="captureArea" class="fixed -left-[9999px] top-0"></div>
 
   <script>
     // --- DATABASE & STATE ---
-    const DB_KEY = 'indus_v5_pro';
+    const DB_KEY = 'indus_hostel_v7';
     let state = JSON.parse(localStorage.getItem(DB_KEY)) || { students: [], attendance: [], payments: [] };
     const sync = () => localStorage.setItem(DB_KEY, JSON.stringify(state));
 
     let currentTab = 'dashboard';
     let filterMonth = new Date().toISOString().slice(0, 7);
     let messDate = new Date().toISOString().split('T')[0];
-    let activeStudent = null;
-    
-    // Search states
-    let residentsSearch = "";
-    let messSearch = "";
+    let activeStudentId = null;
 
-    // --- UTILITIES ---
-    const formatWA = (num) => {
-      let clean = num.replace(/\D/g, '');
-      return clean.startsWith('0') ? '92' + clean.slice(1) : clean;
-    };
-    const getMoName = (m) => new Date(m + '-01').toLocaleString('en-pk', { month: 'long', year: 'numeric' });
+    // --- NAVIGATION LOGIC ---
+    function changeTab(tab) {
+        currentTab = tab;
+        render();
+    }
 
-    // --- MAIN RENDERER ---
     function render() {
-      const app = document.getElementById('app');
-      document.getElementById('globalBackBtn').classList.toggle('hidden', !['add', 'profile', 'edit'].includes(currentTab));
-
-      if (currentTab === 'dashboard') renderDash(app);
-      else if (currentTab === 'rooms') renderRooms(app);
-      else if (currentTab === 'add' || currentTab === 'edit') renderForm(app);
-      else if (currentTab === 'profile') renderProfile(app);
-      else if (currentTab === 'mess') renderMess(app);
-      else if (currentTab === 'finance') renderFinance(app);
-      else if (currentTab === 'reports') renderReports(app);
-
-      document.querySelectorAll('.nav-item').forEach(n => {
-        n.classList.toggle('tab-active', n.dataset.tab === currentTab);
-      });
-    }
-
-    // --- DASHBOARD ---
-    function renderDash(el) {
-      const today = new Date().toISOString().split('T')[0];
-      const messToday = state.attendance.filter(a => a.date === today);
-      
-      el.innerHTML = `
-        <div class="space-y-6">
-          <div class="flex justify-between items-end">
-            <div>
-               <h2 class="text-2xl font-black text-slate-800">Assalam-o-Alaikum</h2>
-               <p class="text-xs font-semibold text-slate-400">Hostel Overview</p>
-            </div>
-            <div class="text-right">
-               <span class="text-[10px] font-black bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-full uppercase tracking-tighter">${today}</span>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-4">
-             <div class="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm">
-                <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Total Students</p>
-                <p class="text-3xl font-black text-slate-800">${state.students.length}</p>
-             </div>
-             <div class="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm">
-                <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Active Rooms</p>
-                <p class="text-3xl font-black text-slate-800">${new Set(state.students.map(s=>s.roomName)).size}</p>
-             </div>
-          </div>
-
-          <div class="bg-gradient-to-br from-[#2c7a3f] to-[#1e562c] p-6 rounded-[2.5rem] text-white shadow-xl shadow-emerald-100 relative overflow-hidden">
-             <div class="relative z-10">
-                <p class="text-xs font-bold opacity-70 mb-5 uppercase tracking-widest">Mess Demand (Today)</p>
-                <div class="flex justify-between">
-                    <div class="text-center">
-                       <p class="text-2xl font-black">${messToday.filter(a=>a.breakfast).length}</p>
-                       <p class="text-[9px] font-bold text-orange-200">BREAKFAST</p>
-                    </div>
-                    <div class="w-px bg-white/10"></div>
-                    <div class="text-center">
-                       <p class="text-2xl font-black">${messToday.filter(a=>a.lunch).length}</p>
-                       <p class="text-[9px] font-bold text-blue-200">LUNCH</p>
-                    </div>
-                    <div class="w-px bg-white/10"></div>
-                    <div class="text-center">
-                       <p class="text-2xl font-black">${messToday.filter(a=>a.dinner).length}</p>
-                       <p class="text-[9px] font-bold text-purple-200">DINNER</p>
-                    </div>
-                </div>
-             </div>
-             <i class="fas fa-plate-wheat absolute -bottom-4 -right-4 text-7xl opacity-10"></i>
-          </div>
-        </div>
-      `;
-    }
-
-    // --- ROOMS & RESIDENTS ---
-    function renderRooms(el) {
-      const rooms = {};
-      
-      // Filter students first based on search
-      const filteredStudents = state.students.filter(s => 
-        s.name.toLowerCase().includes(residentsSearch.toLowerCase()) || 
-        s.roomName.toLowerCase().includes(residentsSearch.toLowerCase())
-      );
-
-      filteredStudents.forEach(s => {
-        if (!rooms[s.roomName]) rooms[s.roomName] = [];
-        rooms[s.roomName].push(s);
-      });
-
-      el.innerHTML = `
-        <div class="space-y-4">
-          <div class="flex justify-between items-center">
-             <h2 class="text-xl font-black text-slate-800 tracking-tight">Residents</h2>
-             <button onclick="currentTab='add'; render()" class="bg-[#2c7a3f] text-white px-4 py-2 rounded-xl text-[10px] font-bold active-scale shadow-lg shadow-emerald-50"><i class="fas fa-plus mr-1"></i> ADD NEW</button>
-          </div>
-
-          <!-- Search Bar -->
-          <div class="relative">
-             <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-             <input type="text" placeholder="Search student or room..." 
-                    value="${residentsSearch}"
-                    oninput="residentsSearch=this.value; renderRooms(document.getElementById('app'))"
-                    class="w-full bg-white border border-slate-200 py-3 pl-10 pr-4 rounded-2xl text-xs font-bold shadow-sm focus:ring-2 focus:ring-emerald-500 outline-none transition">
-          </div>
-
-          <div id="roomsList">
-            ${Object.keys(rooms).length ? Object.keys(rooms).map(room => `
-               <div class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm mb-4">
-                  <div class="bg-slate-50 px-5 py-3 flex justify-between items-center border-b border-slate-100">
-                     <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest">${room}</span>
-                     <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">${rooms[room].length} Residents</span>
-                  </div>
-                  <div class="divide-y divide-slate-50">
-                     ${rooms[room].map(s => `
-                        <div onclick="activeStudent='${s.id}'; currentTab='profile'; render()" class="px-5 py-4 flex items-center justify-between hover:bg-slate-50 transition cursor-pointer active:bg-slate-100">
-                           <div class="flex items-center gap-4">
-                              <img src="${s.photo || 'https://via.placeholder.com/100'}" class="w-10 h-10 rounded-xl object-cover border border-slate-100 shadow-sm">
-                              <div>
-                                 <p class="text-sm font-bold text-slate-800">${s.name}</p>
-                                 <p class="text-[10px] text-slate-400 font-medium">${s.phone}</p>
-                              </div>
-                           </div>
-                           <i class="fas fa-chevron-right text-slate-200 text-xs"></i>
-                        </div>
-                     `).join('')}
-                  </div>
-               </div>
-            `).join('') : `
-                <div class="text-center py-20">
-                    <i class="fas fa-search text-4xl text-slate-200 mb-4 block"></i>
-                    <p class="text-slate-400 italic">No matching residents found.</p>
-                </div>
-            `}
-          </div>
-        </div>
-      `;
-    }
-
-    // --- ADD/EDIT FORM ---
-    function renderForm(el) {
-      const isEdit = currentTab === 'edit';
-      const s = isEdit ? state.students.find(x => x.id === activeStudent) : null;
-
-      el.innerHTML = `
-        <div class="bg-white p-6 rounded-[2.5rem] border border-slate-200 shadow-sm">
-          <h2 class="text-xl font-black mb-6">${isEdit ? 'Update Resident' : 'New Registration'}</h2>
-          <form id="studentForm" class="space-y-4">
-            <div class="flex flex-col items-center mb-6">
-                <label class="cursor-pointer relative group">
-                    <img id="preview" src="${s?.photo || 'https://via.placeholder.com/150'}" class="w-24 h-24 rounded-3xl object-cover border-4 border-slate-100 shadow-md">
-                    <div class="absolute inset-0 bg-black/40 rounded-3xl opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition">
-                        <i class="fas fa-camera"></i>
-                    </div>
-                    <input type="file" id="photoInput" accept="image/*" class="hidden">
-                    <input type="hidden" name="photo" id="photoData" value="${s?.photo || ''}">
-                </label>
-                <p class="text-[9px] font-bold text-slate-400 mt-2 uppercase">Resident Photo</p>
-            </div>
-            
-            <div class="space-y-1">
-                <label class="text-[10px] font-black text-slate-400 ml-2 uppercase">Full Name</label>
-                <input name="name" value="${s?.name || ''}" required class="w-full p-3.5 bg-slate-50 rounded-2xl text-sm border-none focus:ring-2 focus:ring-[#2c7a3f]">
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-                <div class="space-y-1">
-                    <label class="text-[10px] font-black text-slate-400 ml-2 uppercase">Room No.</label>
-                    <input name="roomName" value="${s?.roomName || ''}" placeholder="e.g. 104" required class="w-full p-3.5 bg-slate-50 rounded-2xl text-sm border-none focus:ring-2 focus:ring-[#2c7a3f]">
-                </div>
-                <div class="space-y-1">
-                    <label class="text-[10px] font-black text-slate-400 ml-2 uppercase">Phone</label>
-                    <input name="phone" value="${s?.phone || ''}" placeholder="03000000000" required class="w-full p-3.5 bg-slate-50 rounded-2xl text-sm border-none focus:ring-2 focus:ring-[#2c7a3f]">
-                </div>
-            </div>
-
-            <div class="bg-emerald-50/50 p-4 rounded-3xl space-y-4 border border-emerald-100">
-                <p class="text-[10px] font-black text-emerald-700 uppercase px-2">Monthly Dues Setup</p>
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-black text-slate-400 ml-2 uppercase tracking-tighter">Rent/Hostel</label>
-                        <input type="number" name="hFee" value="${s?.hFee || 6000}" class="w-full p-3.5 bg-white rounded-2xl text-sm border-none focus:ring-2 focus:ring-[#2c7a3f]">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-black text-slate-400 ml-2 uppercase tracking-tighter">Mess Charges</label>
-                        <input type="number" name="mFee" value="${s?.mFee || 5000}" class="w-full p-3.5 bg-white rounded-2xl text-sm border-none focus:ring-2 focus:ring-[#2c7a3f]">
-                    </div>
-                </div>
-            </div>
-
-            <button type="submit" class="w-full bg-[#2c7a3f] text-white py-4 rounded-2xl font-black shadow-xl shadow-emerald-50 active-scale transition">
-               ${isEdit ? 'SAVE CHANGES' : 'COMPLETE REGISTRATION'}
-            </button>
-          </form>
-        </div>
-      `;
-
-      document.getElementById('photoInput').onchange = (e) => {
-        const file = e.target.files[0];
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            document.getElementById('preview').src = ev.target.result;
-            document.getElementById('photoData').value = ev.target.result;
-        };
-        reader.readAsDataURL(file);
-      };
-
-      document.getElementById('studentForm').onsubmit = (e) => {
-        e.preventDefault();
-        const fd = new FormData(e.target);
-        const data = {
-            id: isEdit ? activeStudent : 'ST' + Date.now(),
-            name: fd.get('name'),
-            roomName: fd.get('roomName'),
-            phone: fd.get('phone'),
-            hFee: Number(fd.get('hFee')),
-            mFee: Number(fd.get('mFee')),
-            photo: fd.get('photo'),
-            joined: s?.joined || new Date().toISOString().split('T')[0]
-        };
-
-        if(isEdit) state.students = state.students.map(x => x.id === activeStudent ? data : x);
-        else state.students.push(data);
+        const app = document.getElementById('app');
+        const backBtn = document.getElementById('globalBackBtn');
         
-        sync(); currentTab = 'rooms'; render();
-      };
+        // Reset scroll
+        window.scrollTo(0, 0);
+
+        // Header Back Button visibility
+        backBtn.classList.toggle('hidden', !['add', 'profile', 'edit'].includes(currentTab));
+        backBtn.onclick = () => {
+            currentTab = (currentTab === 'edit' || currentTab === 'profile') ? 'rooms' : 'dashboard';
+            render();
+        };
+
+        // Navigation Highlight
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('nav-active'));
+        const activeNav = document.getElementById(`nav-${currentTab}`);
+        if(activeNav) activeNav.classList.add('nav-active');
+
+        // Route Views
+        if (currentTab === 'dashboard') renderDashboard(app);
+        else if (currentTab === 'rooms') renderResidents(app);
+        else if (currentTab === 'mess') renderMess(app);
+        else if (currentTab === 'finance') renderFinance(app);
+        else if (currentTab === 'reports') renderReports(app);
+        else if (currentTab === 'add' || currentTab === 'edit') renderForm(app);
+        else if (currentTab === 'profile') renderProfile(app);
     }
 
-    // --- PROFILE ---
-    function renderProfile(el) {
-      const s = state.students.find(x => x.id === activeStudent);
-      if(!s) return;
+    // --- VIEW 1: DASHBOARD ---
+    function renderDashboard(el) {
+        const today = new Date().toISOString().split('T')[0];
+        const messToday = state.attendance.filter(a => a.date === today);
+        const totalExpected = state.students.reduce((sum, s) => sum + (s.hFee + s.mFee), 0);
+        const totalReceived = state.payments.filter(p => p.month === filterMonth).reduce((sum, p) => sum + p.total, 0);
 
-      const totalDue = s.hFee + s.mFee;
-      const paid = state.payments.filter(p => p.studentId === s.id && p.month === filterMonth).reduce((sum, p) => sum + p.total, 0);
-      const remaining = totalDue - paid;
+        el.innerHTML = `
+            <div class="fade-in space-y-6">
+                <div><h2 class="text-2xl font-black text-slate-800">Assalam-o-Alaikum</h2><p class="text-sm font-medium text-slate-500">Hostel Overview</p></div>
 
-      el.innerHTML = `
-        <div class="space-y-6">
-          <div class="bg-white p-6 rounded-[2.5rem] border border-slate-200 text-center shadow-sm relative">
-             <div class="flex justify-center mb-4">
-                <img src="${s.photo || 'https://via.placeholder.com/150'}" class="w-24 h-24 rounded-[2rem] object-cover border-4 border-white shadow-xl">
-             </div>
-             <h2 class="text-2xl font-black text-slate-800">${s.name}</h2>
-             <p class="text-xs font-bold text-emerald-700 uppercase tracking-widest bg-emerald-50 inline-block px-4 py-1 rounded-full mt-1">${s.roomName}</p>
-             
-             <div class="grid grid-cols-2 gap-3 mt-6">
-                <a href="tel:${s.phone}" class="bg-slate-100 text-slate-700 p-3 rounded-2xl flex items-center justify-center gap-2 font-bold text-xs"><i class="fas fa-phone"></i> CALL</a>
-                <a href="${getWhatsAppLink(s, filterMonth)}" target="_blank" class="bg-emerald-600 text-white p-3 rounded-2xl flex items-center justify-center gap-2 font-bold text-xs"><i class="fab fa-whatsapp"></i> REMIND</a>
-             </div>
-
-             <div class="flex gap-2 justify-center mt-3">
-                <button onclick="currentTab='edit'; render()" class="text-[10px] font-black text-slate-400 uppercase px-4 py-2 hover:text-emerald-700 transition">Edit</button>
-                <button onclick="delStud('${s.id}')" class="text-[10px] font-black text-slate-400 uppercase px-4 py-2 hover:text-rose-600 transition">Delete</button>
-             </div>
-          </div>
-
-          <div class="bg-white p-6 rounded-[2.5rem] border border-slate-200">
-             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-sm font-black uppercase text-slate-400 tracking-widest">Transaction History</h3>
-                <button onclick="payPrompt('${s.id}')" class="bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-[10px] font-bold active-scale">ADD PAYMENT</button>
-             </div>
-             <div class="space-y-3">
-                ${state.payments.filter(p=>p.studentId===s.id).sort((a,b)=>b.month.localeCompare(a.month)).map(p=>`
-                  <div class="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                     <div>
-                        <p class="text-xs font-black text-slate-700 uppercase tracking-tighter">${getMoName(p.month)}</p>
-                        <p class="text-[9px] text-slate-400 font-bold">${p.date}</p>
-                     </div>
-                     <div class="text-right">
-                        <p class="text-xs font-black text-emerald-700">Rs. ${p.total}</p>
-                        <button onclick="printReceipt('${p.id}')" class="text-[9px] font-black text-slate-400 underline uppercase">Receipt</button>
-                     </div>
-                  </div>
-                `).join('') || '<p class="text-center text-[10px] text-slate-400 py-4 font-bold">No payments found.</p>'}
-             </div>
-          </div>
-        </div>
-      `;
-    }
-
-    // --- MESS ---
-    function renderMess(el) {
-      const filteredStudents = state.students.filter(s => 
-        s.name.toLowerCase().includes(messSearch.toLowerCase()) || 
-        s.roomName.toLowerCase().includes(messSearch.toLowerCase())
-      );
-
-      el.innerHTML = `
-        <div class="space-y-4">
-           <div class="flex justify-between items-center">
-              <h2 class="text-xl font-black text-slate-800">Attendance</h2>
-              <input type="date" value="${messDate}" onchange="messDate=this.value; render()" class="text-xs font-black border-none bg-white p-3 rounded-xl shadow-sm outline-none">
-           </div>
-
-           <!-- Search Room/Student -->
-           <div class="relative">
-              <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-              <input type="text" placeholder="Search Room or Name..." 
-                     value="${messSearch}"
-                     oninput="messSearch=this.value; renderMess(document.getElementById('app'))"
-                     class="w-full bg-white border border-slate-200 py-3 pl-10 pr-4 rounded-2xl text-xs font-bold shadow-sm focus:ring-2 focus:ring-emerald-500 outline-none transition">
-           </div>
-
-           <div class="space-y-3" id="messList">
-              ${filteredStudents.length ? filteredStudents.map(s => {
-                const a = state.attendance.find(at => at.studentId === s.id && at.date === messDate) || {breakfast:false, lunch:false, dinner:false};
-                return `
-                   <div class="bg-white p-4 rounded-3xl border border-slate-200 flex items-center justify-between shadow-sm">
-                      <div class="flex items-center gap-3 max-w-[45%]">
-                         <img src="${s.photo || 'https://via.placeholder.com/100'}" class="w-10 h-10 rounded-xl object-cover">
-                         <div class="truncate">
-                            <p class="text-xs font-black text-slate-800 truncate">${s.name}</p>
-                            <p class="text-[9px] font-bold text-slate-400 uppercase">${s.roomName}</p>
-                         </div>
-                      </div>
-                      <div class="flex gap-2">
-                         <button onclick="markMess('${s.id}', 'breakfast')" class="w-9 h-9 rounded-xl font-black text-[9px] transition border ${a.breakfast ? 'btn-b text-white border-none shadow-md shadow-orange-100' : 'bg-slate-50 text-slate-300 border-slate-100'}">B</button>
-                         <button onclick="markMess('${s.id}', 'lunch')" class="w-9 h-9 rounded-xl font-black text-[9px] transition border ${a.lunch ? 'btn-l text-white border-none shadow-md shadow-blue-100' : 'bg-slate-50 text-slate-300 border-slate-100'}">L</button>
-                         <button onclick="markMess('${s.id}', 'dinner')" class="w-9 h-9 rounded-xl font-black text-[9px] transition border ${a.dinner ? 'btn-d text-white border-none shadow-md shadow-purple-100' : 'bg-slate-50 text-slate-300 border-slate-100'}">D</button>
-                      </div>
-                   </div>
-                `;
-              }).join('') : `<div class="text-center py-10 text-slate-400 text-xs italic">No matching results for attendance.</div>`}
-           </div>
-        </div>
-      `;
-    }
-
-    function markMess(sId, type) {
-      let a = state.attendance.find(x => x.studentId === sId && x.date === messDate);
-      if(!a) { a = { studentId: sId, date: messDate, breakfast: false, lunch: false, dinner: false }; state.attendance.push(a); }
-      a[type] = !a[type]; sync(); render();
-    }
-
-    // --- FINANCE ---
-    function renderFinance(el) {
-      el.innerHTML = `
-        <div class="space-y-4">
-           <div class="flex justify-between items-center">
-              <h2 class="text-xl font-black text-slate-800">Fee Status</h2>
-              <input type="month" value="${filterMonth}" onchange="filterMonth=this.value; render()" class="text-xs font-black border-none bg-white p-3 rounded-xl shadow-sm outline-none">
-           </div>
-           <div class="space-y-3">
-              ${state.students.map(s => {
-                const payments = state.payments.filter(px => px.studentId === s.id && px.month === filterMonth);
-                const paidAmount = payments.reduce((sum, p) => sum + p.total, 0);
-                const totalDue = s.hFee + s.mFee;
-                const remaining = totalDue - paidAmount;
-
-                let statusBadge = '';
-                if(paidAmount === 0) {
-                    statusBadge = `<button onclick="payPrompt('${s.id}')" class="bg-rose-50 text-rose-600 px-4 py-2 rounded-xl text-[9px] font-black uppercase border border-rose-100 active-scale">PENDING</button>`;
-                } else if (paidAmount < totalDue) {
-                    statusBadge = `<button onclick="payPrompt('${s.id}')" class="bg-orange-50 text-orange-600 px-4 py-2 rounded-xl text-[9px] font-black uppercase border border-orange-100 active-scale">DUE: Rs.${remaining}</button>`;
-                } else {
-                    statusBadge = `<span class="text-[9px] font-black bg-emerald-100 text-emerald-700 px-3 py-2 rounded-xl uppercase">PAID</span>`;
-                }
-
-                return `
-                  <div class="bg-white p-5 rounded-[2rem] border border-slate-200 flex justify-between items-center shadow-sm">
-                    <div class="flex items-center gap-4">
-                       <img src="${s.photo || 'https://via.placeholder.com/100'}" class="w-10 h-10 rounded-xl object-cover grayscale opacity-50">
-                       <div>
-                          <h4 class="text-xs font-black text-slate-800">${s.name}</h4>
-                          <p class="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Total: ${totalDue} | Rec: ${paidAmount}</p>
-                       </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-white p-5 rounded-[2rem] card-shadow">
+                        <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Total Residents</p>
+                        <p class="text-3xl font-black text-slate-800">${state.students.length}</p>
                     </div>
-                    ${statusBadge}
-                  </div>
-                `;
-              }).join('')}
-           </div>
-        </div>
-      `;
-    }
-
-    // --- REPORTS CENTER ---
-    function renderReports(el) {
-      el.innerHTML = `
-        <div class="space-y-6">
-           <h2 class="text-xl font-black text-slate-800">Report Engine</h2>
-           <div class="bg-white p-6 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-5">
-              <div class="p-4 bg-slate-50 rounded-3xl">
-                 <label class="text-[10px] font-black text-slate-400 uppercase mb-3 block">Reporting Parameters</label>
-                 <div class="space-y-3">
-                    <div>
-                        <p class="text-[8px] font-bold text-slate-400 ml-1">Context Date (Daily/Weekly)</p>
-                        <input type="date" value="${messDate}" onchange="messDate=this.value" class="w-full bg-white p-3 rounded-xl text-xs font-bold border-none shadow-sm outline-none">
+                    <div class="bg-white p-5 rounded-[2rem] card-shadow text-emerald-600">
+                        <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Fee Collected</p>
+                        <p class="text-xl font-black">Rs. ${totalReceived.toLocaleString()}</p>
                     </div>
-                    <div>
-                         <p class="text-[8px] font-bold text-slate-400 ml-1">Context Month (Finance/Monthly)</p>
-                        <input type="month" value="${filterMonth}" onchange="filterMonth=this.value" class="w-full bg-white p-3 rounded-xl text-xs font-bold border-none shadow-sm outline-none">
+                </div>
+
+                <div class="bg-slate-900 p-6 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden">
+                    <div class="relative z-10 space-y-5">
+                        <p class="text-xs font-bold text-emerald-400 uppercase tracking-widest">Mess Demand Today</p>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="text-center"><p class="text-2xl font-black">${messToday.filter(a=>a.breakfast).length}</p><p class="text-[9px] font-bold text-slate-400 uppercase">Breakfast</p></div>
+                            <div class="text-center"><p class="text-2xl font-black">${messToday.filter(a=>a.lunch).length}</p><p class="text-[9px] font-bold text-slate-400 uppercase">Lunch</p></div>
+                            <div class="text-center"><p class="text-2xl font-black">${messToday.filter(a=>a.dinner).length}</p><p class="text-[9px] font-bold text-slate-400 uppercase">Dinner</p></div>
+                        </div>
                     </div>
-                 </div>
-              </div>
-
-              <div class="grid grid-cols-1 gap-3">
-                 <button onclick="genPDF('mess_daily')" class="flex items-center gap-4 bg-white border border-slate-100 p-5 rounded-2xl shadow-sm hover:border-emerald-500 transition active-scale">
-                    <div class="w-12 h-12 bg-orange-100 text-orange-600 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-calendar-day"></i></div>
-                    <div class="text-left"><p class="text-sm font-black text-slate-800">Daily Mess Report</p><p class="text-[10px] text-slate-400 font-bold uppercase">Single Day View</p></div>
-                 </button>
-                 <button onclick="genPDF('mess_weekly')" class="flex items-center gap-4 bg-white border border-slate-100 p-5 rounded-2xl shadow-sm hover:border-emerald-500 transition active-scale">
-                    <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-calendar-week"></i></div>
-                    <div class="text-left"><p class="text-sm font-black text-slate-800">Weekly Summary</p><p class="text-[10px] text-slate-400 font-bold uppercase">7-Day Analysis</p></div>
-                 </button>
-                 <button onclick="genPDF('mess_monthly')" class="flex items-center gap-4 bg-white border border-slate-100 p-5 rounded-2xl shadow-sm hover:border-emerald-500 transition active-scale">
-                    <div class="w-12 h-12 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center text-xl"><i class="fas fa-file-invoice"></i></div>
-                    <div class="text-left"><p class="text-sm font-black text-slate-800">Monthly Mess Log</p><p class="text-[10px] text-slate-400 font-bold uppercase">Full Month Breakdown</p></div>
-                 </button>
-                 <button onclick="genPDF('paid')" class="bg-[#2c7a3f] text-white p-5 rounded-3xl font-black text-sm shadow-xl active-scale transition">
-                    <i class="fas fa-check-double mr-2"></i> GEN. PAID LIST
-                 </button>
-                 <button onclick="genPDF('unpaid')" class="bg-rose-600 text-white p-5 rounded-3xl font-black text-sm shadow-xl active-scale transition">
-                    <i class="fas fa-circle-exclamation mr-2"></i> GEN. DEFAULTERS
-                 </button>
-              </div>
-           </div>
-        </div>
-      `;
-    }
-
-    // --- PRO PDF GENERATOR ---
-    function genPDF(type) {
-      let title = ""; let header = ""; let rows = ""; let statsHtml = "";
-      const moName = getMoName(filterMonth);
-
-      // Utility for Weekly/Monthly Stats
-      const getRangeStats = (start, end) => {
-          const rangeData = state.attendance.filter(a => a.date >= start && a.date <= end);
-          const totals = { b: 0, l: 0, d: 0 };
-          const dayCounts = {};
-          rangeData.forEach(entry => {
-              const count = (entry.breakfast?1:0) + (entry.lunch?1:0) + (entry.dinner?1:0);
-              totals.b += entry.breakfast?1:0; totals.l += entry.lunch?1:0; totals.d += entry.dinner?1:0;
-              dayCounts[entry.date] = (dayCounts[entry.date] || 0) + count;
-          });
-          const peak = Object.keys(dayCounts).reduce((a, b) => dayCounts[a] > dayCounts[b] ? a : b, "N/A");
-          return { totals, peak, total: totals.b + totals.l + totals.d };
-      };
-
-      if(type === 'mess_daily') {
-        title = `Daily Mess Attendance - ${messDate}`;
-        header = `<th>Student Name</th><th>Room</th><th style="color:#f97316">Breakfast</th><th style="color:#3b82f6">Lunch</th><th style="color:#a855f7">Dinner</th>`;
-        rows = state.students.map(s => {
-          const a = state.attendance.find(x => x.studentId === s.id && x.date === messDate) || {};
-          return `<tr><td>${s.name}</td><td>${s.roomName}</td><td>${a.breakfast?'✔️':''}</td><td>${a.lunch?'✔️':''}</td><td>${a.dinner?'✔️':''}</td></tr>`;
-        }).join('');
-      } 
-      else if (type === 'mess_weekly' || type === 'mess_monthly') {
-        let start, end;
-        if(type === 'mess_weekly') {
-            const d = new Date(messDate); d.setDate(d.getDate() - 6);
-            start = d.toISOString().split('T')[0]; end = messDate;
-            title = `Weekly Mess Analytics (${start} to ${end})`;
-        } else {
-            start = `${filterMonth}-01`; end = `${filterMonth}-31`;
-            title = `Monthly Mess Log - ${moName}`;
-        }
-
-        const stats = getRangeStats(start, end);
-        statsHtml = `
-            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px;">
-                <div class="insight-card"><p class="isl">Breakfasts</p><p class="isv">${stats.totals.b}</p></div>
-                <div class="insight-card"><p class="isl">Lunches</p><p class="isv">${stats.totals.l}</p></div>
-                <div class="insight-card"><p class="isl">Dinners</p><p class="isv">${stats.totals.d}</p></div>
-                <div class="insight-card" style="background:#2c7a3f; color:white;"><p class="isl" style="color:rgba(255,255,255,0.7)">Peak Consumption</p><p class="isv" style="font-size:14px; color:white;">${stats.peak}</p></div>
+                </div>
             </div>
         `;
-        header = `<th>Name</th><th>Room</th><th>Breakfast</th><th>Lunch</th><th>Dinner</th><th>Total Meals</th>`;
-        rows = state.students.map(s => {
-            const data = state.attendance.filter(a => a.studentId === s.id && a.date >= start && a.date <= end);
-            const b = data.filter(x => x.breakfast).length;
-            const l = data.filter(x => x.lunch).length;
-            const d = data.filter(x => x.dinner).length;
-            return `<tr><td>${s.name}</td><td>${s.roomName}</td><td>${b}</td><td>${l}</td><td>${d}</td><td style="font-weight:800; color:#2c7a3f;">${b+l+d}</td></tr>`;
-        }).join('');
-      }
-      else if (type === 'paid') {
-        title = `Cleared Payments - ${moName}`;
-        header = `<th>Resident Name</th><th>Room</th><th>Amount</th><th>Date</th>`;
-        rows = state.payments.filter(p => p.month === filterMonth).map(p => {
-          const s = state.students.find(x => x.id === p.studentId);
-          return `<tr><td>${s.name}</td><td>${s.roomName}</td><td style="color:#16a34a; font-weight:bold;">Rs. ${p.total}</td><td>${p.date}</td></tr>`;
-        }).join('');
-      } 
-      else if (type === 'unpaid') {
-        title = `Hostel Defaulters - ${moName}`;
-        header = `<th>Resident Name</th><th>Room</th><th>Phone</th><th>Status</th><th>Balance</th>`;
-        rows = state.students.filter(s => {
-          const paid = state.payments.filter(p => p.studentId === s.id && p.month === filterMonth).reduce((sum,px)=>sum+px.total,0);
-          return paid < (s.hFee + s.mFee);
-        }).map(s => {
-          const paid = state.payments.filter(p => p.studentId === s.id && p.month === filterMonth).reduce((sum,px)=>sum+px.total,0);
-          const bal = (s.hFee+s.mFee) - paid;
-          return `<tr><td>${s.name}</td><td>${s.roomName}</td><td>${s.phone}</td>
-            <td><span style="background:${paid>0?'#fef3c7':'#fee2e2'}; color:${paid>0?'#92400e':'#991b1b'}; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:bold;">${paid>0?'PARTIAL':'UNPAID'}</span></td>
-            <td style="font-weight:bold; color:#e11d48">Rs. ${bal}</td></tr>`;
-        }).join('');
-      }
-
-      const win = window.open('', '_blank');
-      win.document.write(`
-        <html><head><title>${title}</title><style>
-            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap');
-            body{ font-family: 'Inter', sans-serif; padding: 50px; color: #1e293b; line-height: 1.5; }
-            .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid #2c7a3f; padding-bottom: 20px; margin-bottom: 30px; }
-            .logo-area h1 { font-size: 32px; font-weight: 800; color: #2c7a3f; margin: 0; text-transform: uppercase; letter-spacing: -1px; }
-            .logo-area p { margin: 0; color: #64748b; font-weight: 600; font-size: 14px; }
-            .meta-area { text-align: right; }
-            .meta-area p { margin: 2px 0; font-size: 12px; font-weight: 700; color: #64748b; }
-            .insight-card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 16px; text-align: center; }
-            .isl { font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; margin: 0 0 5px 0; }
-            .isv { font-size: 24px; font-weight: 800; color: #2c7a3f; margin: 0; }
-            table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 10px; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
-            th { background: #f1f5f9; color: #475569; font-weight: 800; text-transform: uppercase; font-size: 11px; padding: 15px; text-align: left; border-bottom: 1px solid #e2e8f0; }
-            td { padding: 15px; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
-            tr:last-child td { border-bottom: none; }
-            tr:nth-child(even) { background: #fbfcfe; }
-            .footer { margin-top: 60px; display: flex; justify-content: space-between; align-items: flex-end; }
-            .sig-box { text-align: center; }
-            .sig-line { width: 200px; border-top: 2px solid #1e293b; margin-bottom: 5px; }
-            @media print { .no-print { display: none; } }
-            .btn-print { background: #2c7a3f; color: white; padding: 12px 25px; border-radius: 10px; border: none; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(44, 122, 63, 0.3); }
-        </style></head>
-        <body>
-            <div class="no-print" style="position: fixed; top: 20px; right: 20px;"><button class="btn-print" onclick="window.print()">PRINT / SAVE AS PDF</button></div>
-            <div class="header">
-                <div class="logo-area">
-                    <h1>Indus Boys Hostel</h1>
-                    <p>Sukkur, Sindh - Management Report</p>
-                </div>
-                <div class="meta-area">
-                    <p>REPORT: ${title}</p>
-                    <p>GENERATED: ${new Date().toLocaleString()}</p>
-                </div>
-            </div>
-            ${statsHtml}
-            <table><thead><tr>${header}</tr></thead><tbody>${rows}</tbody></table>
-            <div class="footer">
-                <div style="font-size: 10px; color: #94a3b8; font-weight: 600;">System Generated Official Document<br>© INDUS HOSTEL MANAGEMENT v5 PRO</div>
-                <div class="sig-box">
-                    <div class="sig-line"></div>
-                    <p style="font-size: 12px; font-weight: 800; margin: 0; color: #1e293b;">WARDEN SIGNATURE</p>
-                </div>
-            </div>
-        </body></html>
-      `);
-      win.document.close();
     }
 
-    // --- OTHER CORE LOGIC ---
-    function payPrompt(sId) {
-      const s = state.students.find(x => x.id === sId);
-      const payments = state.payments.filter(px => px.studentId === s.id && px.month === filterMonth);
-      const totalDue = s.hFee + s.mFee;
-      const alreadyPaid = payments.reduce((sum, p) => sum + p.total, 0);
-      
-      const amt = prompt(`Process Payment for ${s.name}\nMonth: ${getMoName(filterMonth)}\nTotal Due: ${totalDue}\nCollected: ${alreadyPaid}\n\nEnter collection amount:`, totalDue - alreadyPaid);
-      
-      if(amt && !isNaN(amt)) {
-        state.payments.push({ 
-            id: 'TXN' + Date.now(), studentId: sId, month: filterMonth, 
-            date: new Date().toLocaleDateString('en-GB'), total: Number(amt) 
-        });
-        sync(); render();
-      }
+    // --- VIEW 2: RESIDENTS ---
+    function renderResidents(el) {
+        el.innerHTML = `
+            <div class="fade-in space-y-4">
+                <div class="flex justify-between items-center"><h2 class="text-xl font-black text-slate-800">Residents</h2><button onclick="changeTab('add')" class="bg-emerald-600 text-white px-4 py-2 rounded-xl text-xs font-black shadow-lg">ADD NEW</button></div>
+                <div class="relative">
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="resSearch" placeholder="Search by name or room..." class="w-full bg-white border border-slate-200 py-4 pl-12 pr-4 rounded-[1.25rem] text-sm font-semibold">
+                </div>
+                <div id="resList" class="space-y-4"></div>
+            </div>
+        `;
+        const searchInput = document.getElementById('resSearch');
+        searchInput.oninput = (e) => filterResidents(e.target.value);
+        filterResidents("");
     }
 
-    async function printReceipt(pId) {
-      const p = state.payments.find(x => x.id === pId);
-      const s = state.students.find(x => x.id === p.studentId);
-      const container = document.getElementById('captureArea');
-      const [year, month] = p.month.split('-');
-      const mo = new Date(year, month - 1).toLocaleString('default', { month: 'long' });
-
-      container.innerHTML = `
-        <div class="receipt-container" id="rcpt">
-          <div class="receipt-header">
-            <img src="https://i.postimg.cc/RFFccnLV/2-removebg-preview.png" style="width:70px; margin-right:20px;">
-            <div>
-              <div class="receipt-title uppercase">The Indus Boys Hostel</div>
-              <div style="font-size:14px; font-weight:600; opacity:0.9;">Professional Hostel & Messing Services</div>
+    function filterResidents(q) {
+        const container = document.getElementById('resList');
+        const filtered = state.students.filter(s => s.name.toLowerCase().includes(q.toLowerCase()) || s.roomName.toLowerCase().includes(q.toLowerCase()));
+        
+        container.innerHTML = filtered.length ? filtered.map(s => `
+            <div onclick="openProfile('${s.id}')" class="bg-white p-4 rounded-[1.5rem] flex items-center justify-between card-shadow cursor-pointer">
+                <div class="flex items-center gap-4">
+                    <img src="${s.photo || 'https://via.placeholder.com/100'}" class="w-12 h-12 rounded-xl object-cover border border-slate-100">
+                    <div><p class="text-sm font-black text-slate-800">${s.name}</p><p class="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Room ${s.roomName}</p></div>
+                </div>
+                <i class="fas fa-chevron-right text-slate-200 text-xs"></i>
             </div>
-          </div>
-          <div style="padding: 30px;">
-            <div style="display:flex; justify-content:space-between; margin-bottom:25px; font-size:14px;">
-              <div>VOUCHER NO: <span class="receipt-line">${p.id}</span></div>
-              <div>DATE: <span class="receipt-line">${p.date}</span></div>
-            </div>
-            <div style="margin-bottom:20px; font-weight:700;">FOR MONTH: <span class="receipt-line" style="width:250px">${mo.toUpperCase()} ${year}</span></div>
-            <div style="margin-bottom:20px; font-weight:700;">STUDENT: <span style="border-bottom:1px solid #cbd5e1; display:inline-block; width:450px; font-size:18px;">${s.name.toUpperCase()}</span></div>
-            <div style="margin-bottom:20px; font-weight:700;">ROOM NO: <span class="receipt-line" style="width:150px">${s.roomName}</span></div>
-            
-            <div style="display:flex; justify-content:flex-end; margin-top:40px;">
-              <div class="receipt-amount-box">PAID: RS. ${p.total}/-</div>
-            </div>
-          </div>
-          <div style="padding:30px; border-top:2px dashed #e2e8f0; display:flex; justify-content:space-between; align-items:flex-end;">
-            <div style="font-size:10px; color:#64748b;">* This is a computer generated receipt.</div>
-            <div style="text-align:center;">
-                <img src="https://i.postimg.cc/gkHL0kmy/29e8cd36_33df_42a7_ae74_8f1c946647e4_removalai_preview.png" style="width:120px;">
-                <p style="font-size:10px; font-weight:900; color:#2c7a3f; margin:0;">ADMIN STAMP</p>
-            </div>
-          </div>
-        </div>
-      `;
-
-      const blob = await htmlToImage.toPng(document.getElementById('rcpt'));
-      const a = document.createElement('a');
-      a.download = `INDUS_RECEIPT_${s.name.replace(/\s/g, '_')}.png`; a.href = blob; a.click();
+        `).join('') : `<p class="text-center py-10 text-slate-400 italic text-xs">No matching residents found.</p>`;
     }
 
-    const getWhatsAppLink = (student, month) => {
-      const totalDue = student.hFee + student.mFee;
-      const paid = state.payments.filter(p => p.studentId === student.id && p.month === month).reduce((sum, p) => sum + p.total, 0);
-      const remaining = totalDue - paid;
-      const monthName = getMoName(month);
-      const msg = `*Assalam-o-Alaikum ${student.name}*%0A%0AThis is a reminder from *Indus Boys Hostel Sukkur* for the month of *${monthName}*.%0A%0A*Fee Summary:*%0A- Total Payable: Rs. ${totalDue}%0A- Amount Paid: Rs. ${paid}%0A---------------------------%0A- *Remaining Balance: Rs. ${remaining}*%0A---------------------------%0APlease clear your dues at the office. We appreciate your cooperation.%0A%0A*Management, Indus Hostel*`;
-      return `https://wa.me/${formatWA(student.phone)}?text=${msg}`;
-    };
+    // --- VIEW 3: MESS ---
+    function renderMess(el) {
+        el.innerHTML = `
+            <div class="fade-in space-y-4">
+                <div class="flex justify-between items-center"><h2 class="text-xl font-black text-slate-800">Mess Attendance</h2><input type="date" value="${messDate}" id="messDate" class="text-xs font-black bg-white px-3 py-2 rounded-xl border border-slate-100 shadow-sm"></div>
+                <div class="relative">
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="messSearch" placeholder="Filter by room or student..." class="w-full bg-white border border-slate-200 py-4 pl-12 pr-4 rounded-[1.25rem] text-sm font-semibold">
+                </div>
+                <div id="messStats" class="grid grid-cols-3 gap-2"></div>
+                <div id="messList" class="space-y-3"></div>
+            </div>
+        `;
+        document.getElementById('messDate').onchange = (e) => { messDate = e.target.value; updateMessList(document.getElementById('messSearch').value); };
+        document.getElementById('messSearch').oninput = (e) => updateMessList(e.target.value);
+        updateMessList("");
+    }
 
-    function delStud(id) {
-        if(confirm("Permanently delete this resident and all history? This cannot be undone.")) {
-            state.students = state.students.filter(x => x.id !== id);
-            state.payments = state.payments.filter(x => x.studentId !== id);
+    function updateMessList(q) {
+        const list = document.getElementById('messList');
+        const stats = document.getElementById('messStats');
+        const filtered = state.students.filter(s => s.name.toLowerCase().includes(q.toLowerCase()) || s.roomName.toLowerCase().includes(q.toLowerCase()));
+        
+        let b=0, l=0, d=0;
+        list.innerHTML = filtered.map(s => {
+            const a = state.attendance.find(x => x.studentId === s.id && x.date === messDate) || {breakfast:false, lunch:false, dinner:false};
+            if(a.breakfast) b++; if(a.lunch) l++; if(a.dinner) d++;
+            return `
+                <div class="bg-white p-4 rounded-3xl border border-slate-100 flex items-center justify-between card-shadow">
+                    <div class="truncate mr-2"><p class="text-xs font-black text-slate-800 truncate">${s.name}</p><p class="text-[9px] font-bold text-slate-400 uppercase">Room ${s.roomName}</p></div>
+                    <div class="flex gap-2">
+                        <button onclick="markMess('${s.id}', 'breakfast')" class="w-9 h-9 rounded-xl font-bold text-[10px] ${a.breakfast ? 'btn-b text-white shadow-lg' : 'bg-slate-50 text-slate-300'}">B</button>
+                        <button onclick="markMess('${s.id}', 'lunch')" class="w-9 h-9 rounded-xl font-bold text-[10px] ${a.lunch ? 'btn-l text-white shadow-lg' : 'bg-slate-50 text-slate-300'}">L</button>
+                        <button onclick="markMess('${s.id}', 'dinner')" class="w-9 h-9 rounded-xl font-bold text-[10px] ${a.dinner ? 'btn-d text-white shadow-lg' : 'bg-slate-50 text-slate-300'}">D</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        stats.innerHTML = `<div class="bg-orange-50 p-2 rounded-xl text-center border border-orange-100"><p class="text-[8px] font-bold uppercase text-orange-600">B: ${b}</p></div><div class="bg-blue-50 p-2 rounded-xl text-center border border-blue-100"><p class="text-[8px] font-bold uppercase text-blue-600">L: ${l}</p></div><div class="bg-purple-50 p-2 rounded-xl text-center border border-purple-100"><p class="text-[8px] font-bold uppercase text-purple-600">D: ${d}</p></div>`;
+    }
+
+    function markMess(id, type) {
+        let a = state.attendance.find(x => x.studentId === id && x.date === messDate);
+        if(!a) { a = { studentId: id, date: messDate, breakfast: false, lunch: false, dinner: false }; state.attendance.push(a); }
+        a[type] = !a[type];
+        sync(); updateMessList(document.getElementById('messSearch').value);
+    }
+
+    // --- VIEW 4: FINANCE ---
+    function renderFinance(el) {
+        el.innerHTML = `
+            <div class="fade-in space-y-4">
+                <div class="flex justify-between items-center"><h2 class="text-xl font-black text-slate-800">Fee Status</h2><input type="month" value="${filterMonth}" onchange="filterMonth=this.value; render()" class="text-xs font-black bg-white px-3 py-2 rounded-xl border border-slate-100 shadow-sm"></div>
+                <div class="space-y-3">${state.students.map(s => {
+                    const paid = state.payments.filter(p => p.studentId === s.id && p.month === filterMonth).reduce((sum,p)=>sum+p.total,0);
+                    const total = s.hFee + s.mFee;
+                    const bal = total - paid;
+                    return `
+                        <div class="bg-white p-5 rounded-[1.5rem] flex justify-between items-center card-shadow border border-slate-100">
+                            <div><h4 class="text-sm font-black text-slate-800">${s.name}</h4><p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Room ${s.roomName} • Rs. ${total}</p></div>
+                            ${bal <= 0 ? `<span class="bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase">PAID</span>` : 
+                            `<button onclick="collectFee('${s.id}')" class="bg-rose-50 text-rose-600 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase shadow-sm">Rs. ${bal} DUE</button>`}
+                        </div>
+                    `;
+                }).join('')}</div>
+            </div>
+        `;
+    }
+
+    // --- VIEW 5: REPORTS ---
+    function renderReports(el) {
+        el.innerHTML = `
+            <div class="fade-in space-y-6">
+                <h2 class="text-xl font-black text-slate-800">Reports Engine</h2>
+                <div class="bg-white p-6 rounded-[2.5rem] card-shadow border border-slate-100 space-y-4">
+                    <div class="p-4 bg-slate-50 rounded-2xl space-y-3">
+                        <p class="text-[10px] font-black text-slate-400 uppercase">Set Context</p>
+                        <input type="date" value="${messDate}" onchange="messDate=this.value" class="w-full p-3 rounded-xl border shadow-sm text-xs font-bold">
+                        <input type="month" value="${filterMonth}" onchange="filterMonth=this.value" class="w-full p-3 rounded-xl border shadow-sm text-xs font-bold">
+                    </div>
+                    <div class="grid grid-cols-1 gap-2">
+                        <button onclick="genMessPdf('daily')" class="w-full bg-slate-100 text-slate-700 p-4 rounded-xl font-black text-xs text-left">Daily Mess Log</button>
+                        <button onclick="genMessPdf('weekly')" class="w-full bg-slate-100 text-slate-700 p-4 rounded-xl font-black text-xs text-left">Weekly Mess Summary (7 Days)</button>
+                        <button onclick="genMessPdf('monthly')" class="w-full bg-slate-100 text-slate-700 p-4 rounded-xl font-black text-xs text-left">Monthly Mess Analysis</button>
+                        <hr class="my-2 border-slate-100">
+                        <button onclick="genFinPdf('paid')" class="w-full bg-emerald-600 text-white p-4 rounded-xl font-black text-xs text-left">Current Month Paid List</button>
+                        <button onclick="genFinPdf('defaulters')" class="w-full bg-rose-600 text-white p-4 rounded-xl font-black text-xs text-left">Monthly Defaulters List</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // --- VIEW 6: FORM (ADD/EDIT) ---
+    function renderForm(el) {
+        const isEdit = currentTab === 'edit';
+        const s = isEdit ? state.students.find(x => x.id === activeStudentId) : null;
+        el.innerHTML = `
+            <div class="fade-in bg-white p-8 rounded-[2.5rem] card-shadow border border-slate-100">
+                <h2 class="text-xl font-black text-slate-800 mb-8">${isEdit ? 'Modify Resident' : 'New Registration'}</h2>
+                <form id="studentForm" class="space-y-5">
+                    <div class="flex flex-col items-center mb-6"><label class="cursor-pointer relative">
+                        <img id="preview" src="${s?.photo || 'https://via.placeholder.com/150'}" class="w-28 h-28 rounded-[2rem] object-cover border-4 border-slate-50 shadow-md">
+                        <input type="file" id="photoInput" accept="image/*" class="hidden">
+                        <input type="hidden" name="photo" id="photoData" value="${s?.photo || ''}">
+                    </label></div>
+                    <div class="space-y-1"><label class="text-[10px] font-black text-slate-400 ml-2 uppercase">Full Name</label><input name="name" value="${s?.name || ''}" required class="w-full p-4 bg-slate-50 border-none rounded-2xl text-sm font-bold"></div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1"><label class="text-[10px] font-black text-slate-400 ml-2 uppercase">Room</label><input name="roomName" value="${s?.roomName || ''}" required class="w-full p-4 bg-slate-50 border-none rounded-2xl text-sm font-bold"></div>
+                        <div class="space-y-1"><label class="text-[10px] font-black text-slate-400 ml-2 uppercase">WhatsApp</label><input name="phone" value="${s?.phone || ''}" required class="w-full p-4 bg-slate-50 border-none rounded-2xl text-sm font-bold"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1"><label class="text-[10px] font-black text-slate-400 ml-2 uppercase">Rent</label><input type="number" name="hFee" value="${s?.hFee || 6000}" class="w-full p-4 bg-slate-50 border-none rounded-2xl text-sm font-black"></div>
+                        <div class="space-y-1"><label class="text-[10px] font-black text-slate-400 ml-2 uppercase">Mess</label><input type="number" name="mFee" value="${s?.mFee || 5000}" class="w-full p-4 bg-slate-50 border-none rounded-2xl text-sm font-black"></div>
+                    </div>
+                    <button type="submit" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black uppercase text-sm tracking-widest">${isEdit ? 'Update Details' : 'Register Now'}</button>
+                </form>
+            </div>
+        `;
+        document.getElementById('photoInput').onchange = (e) => {
+            const reader = new FileReader();
+            reader.onload = (ev) => { document.getElementById('preview').src = ev.target.result; document.getElementById('photoData').value = ev.target.result; };
+            reader.readAsDataURL(e.target.files[0]);
+        };
+        document.getElementById('studentForm').onsubmit = (e) => {
+            e.preventDefault();
+            const fd = new FormData(e.target);
+            const data = { id: isEdit ? activeStudentId : 'ST' + Date.now(), name: fd.get('name'), roomName: fd.get('roomName'), phone: fd.get('phone'), hFee: Number(fd.get('hFee')), mFee: Number(fd.get('mFee')), photo: fd.get('photo'), joined: s?.joined || new Date().toISOString().split('T')[0] };
+            if(isEdit) state.students = state.students.map(x => x.id === activeStudentId ? data : x);
+            else state.students.push(data);
             sync(); currentTab = 'rooms'; render();
+        };
+    }
+
+    // --- VIEW 7: PROFILE ---
+    function renderProfile(el) {
+        const s = state.students.find(x => x.id === activeStudentId);
+        if(!s) return;
+        const meals = state.attendance.filter(a => a.studentId === s.id && a.date.startsWith(filterMonth));
+        const mealCount = meals.reduce((sum, a) => sum + (a.breakfast?1:0) + (a.lunch?1:0) + (a.dinner?1:0), 0);
+
+        el.innerHTML = `
+            <div class="fade-in space-y-6 pb-10">
+                <div class="bg-white p-8 rounded-[3rem] text-center shadow-xl border border-slate-100">
+                    <img src="${s.photo || 'https://via.placeholder.com/150'}" class="w-28 h-28 rounded-[2.5rem] object-cover mx-auto border-4 border-white shadow-lg mb-4">
+                    <h2 class="text-2xl font-black text-slate-800">${s.name}</h2>
+                    <span class="bg-emerald-50 text-emerald-700 text-[10px] font-black px-4 py-1 rounded-full uppercase">Room ${s.roomName}</span>
+                    
+                    <div class="grid grid-cols-2 gap-4 mt-8">
+                        <div class="p-4 bg-slate-50 rounded-2xl border"><p class="text-2xl font-black">${mealCount}</p><p class="text-[9px] font-bold text-slate-400 uppercase">Meals (Month)</p></div>
+                        <div class="p-4 bg-slate-50 rounded-2xl border"><p class="text-2xl font-black">${s.hFee+s.mFee}</p><p class="text-[9px] font-bold text-slate-400 uppercase">Total Dues</p></div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mt-6">
+                        <a href="tel:${s.phone}" class="bg-emerald-600 text-white p-3.5 rounded-2xl font-black text-xs">CALL</a>
+                        <button onclick="currentTab='edit'; render()" class="bg-slate-100 text-slate-600 p-3.5 rounded-2xl font-black text-xs">EDIT</button>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100">
+                    <h3 class="text-xs font-black uppercase text-slate-400 mb-4 tracking-widest">Payments History</h3>
+                    <div class="space-y-3">
+                        ${state.payments.filter(p=>p.studentId===s.id).map(p=>`
+                            <div class="flex justify-between items-center bg-slate-50 p-4 rounded-xl border">
+                                <div><p class="text-xs font-black text-slate-700 uppercase">${new Date(p.month+'-01').toLocaleString('default',{month:'short', year:'numeric'})}</p><p class="text-[9px] text-slate-400 font-bold">${p.date}</p></div>
+                                <div class="text-right"><p class="text-sm font-black text-emerald-700">Rs. ${p.total}</p><button onclick="getReceipt('${p.id}')" class="text-[9px] text-slate-400 underline">Receipt</button></div>
+                            </div>
+                        `).join('') || '<p class="text-center text-[10px] text-slate-400 py-6">No payments yet.</p>'}
+                    </div>
+                </div>
+                <button onclick="deleteStudent('${s.id}')" class="w-full text-rose-500 font-black text-[10px] uppercase tracking-widest py-4">Permanently Delete Resident</button>
+            </div>
+        `;
+    }
+
+    // --- CORE LOGIC & PDF UTILITIES ---
+
+    function openProfile(id) { activeStudentId = id; currentTab = 'profile'; render(); }
+    function collectFee(id) {
+        const s = state.students.find(x => x.id === id);
+        const paid = state.payments.filter(p => p.studentId === s.id && p.month === filterMonth).reduce((sum,p)=>sum+p.total,0);
+        const due = (s.hFee + s.mFee) - paid;
+        const amt = prompt(`Collect Fee for ${s.name}\nMonth: ${filterMonth}\nDue: ${due}`, due);
+        if(amt && !isNaN(amt)) {
+            state.payments.push({ id: 'TXN'+Date.now(), studentId: id, month: filterMonth, date: new Date().toLocaleDateString('en-GB'), total: Number(amt) });
+            sync(); render();
         }
     }
 
-    // --- NAVIGATION EVENTS ---
-    document.querySelectorAll('.nav-item').forEach(b => b.onclick = () => { currentTab = b.dataset.tab; render(); });
-    document.getElementById('globalBackBtn').onclick = () => { 
-        currentTab = (currentTab === 'edit' || currentTab === 'profile') ? 'rooms' : 'dashboard'; 
-        render(); 
-    };
-    
-    // START APP
+    function deleteStudent(id) { if(confirm("Are you sure? All history will be deleted.")) { state.students = state.students.filter(x=>x.id!==id); state.payments = state.payments.filter(p=>p.studentId!==id); sync(); currentTab='rooms'; render(); } }
+
+    function genMessPdf(type) {
+        let title = "", start, end;
+        if(type === 'daily') { title = `Daily Mess: ${messDate}`; start = messDate; end = messDate; }
+        else if (type === 'weekly') { const d = new Date(messDate); d.setDate(d.getDate() - 6); start = d.toISOString().split('T')[0]; end = messDate; title = `Weekly Mess: ${start} to ${end}`; }
+        else { start = `${filterMonth}-01`; end = `${filterMonth}-31`; title = `Monthly Mess: ${filterMonth}`; }
+
+        const rows = state.students.map(s => {
+            const meals = state.attendance.filter(a => a.studentId === s.id && a.date >= start && a.date <= end);
+            const b = meals.filter(m => m.breakfast).length;
+            const l = meals.filter(m => m.lunch).length;
+            const d = meals.filter(m => m.dinner).length;
+            return `<tr><td>${s.roomName}</td><td>${s.name}</td><td>${b}</td><td>${l}</td><td>${d}</td><td>${b+l+d}</td></tr>`;
+        }).join('');
+
+        const win = window.open('', '_blank');
+        win.document.write(`<html><head><style>body{font-family:sans-serif;padding:30px} table{width:100%;border-collapse:collapse;margin-top:20px} th,td{border:1px solid #eee;padding:12px;text-align:left} th{background:#f8fafc;font-size:12px} h1{color:#059669}</style></head><body><h1>Indus Hostel</h1><p>${title}</p><table><thead><tr><th>Room</th><th>Name</th><th>B</th><th>L</th><th>D</th><th>Total</th></tr></thead><tbody>${rows}</tbody></table><script>window.print();<\/script></body></html>`);
+        win.document.close();
+    }
+
+    function genFinPdf(type) {
+        const title = type === 'paid' ? `Paid List: ${filterMonth}` : `Defaulters List: ${filterMonth}`;
+        const rows = state.students.filter(s => {
+            const paid = state.payments.filter(p => p.studentId === s.id && p.month === filterMonth).reduce((sum,px)=>sum+px.total,0);
+            return type === 'paid' ? paid >= (s.hFee + s.mFee) : paid < (s.hFee + s.mFee);
+        }).map(s => {
+            const paid = state.payments.filter(p => p.studentId === s.id && p.month === filterMonth).reduce((sum,px)=>sum+px.total,0);
+            return `<tr><td>${s.roomName}</td><td>${s.name}</td><td>${s.phone}</td><td>Rs. ${paid}</td><td>Rs. ${(s.hFee+s.mFee)-paid}</td></tr>`;
+        }).join('');
+        const win = window.open('', '_blank');
+        win.document.write(`<html><head><style>body{font-family:sans-serif;padding:30px} table{width:100%;border-collapse:collapse} th,td{border:1px solid #eee;padding:12px;text-align:left} th{background:#f8fafc}</style></head><body><h1>${title}</h1><table><thead><tr><th>Room</th><th>Name</th><th>Phone</th><th>Paid</th><th>Balance</th></tr></thead><tbody>${rows}</tbody></table><script>window.print();<\/script></body></html>`);
+        win.document.close();
+    }
+
+    async function getReceipt(pId) {
+        const p = state.payments.find(x => x.id === pId);
+        const s = state.students.find(x => x.id === p.studentId);
+        const container = document.getElementById('captureArea');
+        container.innerHTML = `
+            <div class="receipt-container p-0" id="rcpt">
+                <div class="bg-emerald-700 text-white p-6">
+                    <h1 class="text-2xl font-black uppercase">The Indus Boys Hostel</h1>
+                    <p class="text-[10px] tracking-widest font-bold opacity-80 uppercase">Sukkur, Sindh • Official Voucher</p>
+                </div>
+                <div class="p-10 space-y-6">
+                    <div class="flex justify-between border-b pb-4 text-slate-800">
+                        <div><p class="text-[10px] text-slate-400 font-bold uppercase">Resident</p><p class="text-lg font-black">${s.name.toUpperCase()}</p></div>
+                        <div class="text-right"><p class="text-[10px] text-slate-400 font-bold uppercase">Room</p><p class="text-lg font-black">${s.roomName}</p></div>
+                    </div>
+                    <div class="grid grid-cols-2">
+                        <div><p class="text-[10px] text-slate-400 font-bold uppercase">Billing Period</p><p class="text-sm font-black">${p.month}</p></div>
+                        <div class="text-right"><p class="text-[10px] text-slate-400 font-bold uppercase">Date</p><p class="text-sm font-black">${p.date}</p></div>
+                    </div>
+                    <div class="bg-emerald-50 p-6 rounded-2xl flex justify-between items-center border border-emerald-100">
+                        <span class="text-emerald-700 font-black">AMOUNT PAID</span>
+                        <span class="text-emerald-800 font-black text-3xl">RS. ${p.total}/-</span>
+                    </div>
+                </div>
+                <div class="px-10 pb-10 text-[9px] text-slate-300 italic">This is a system generated document.</div>
+            </div>
+        `;
+        const blob = await htmlToImage.toPng(document.getElementById('rcpt'));
+        const a = document.createElement('a');
+        a.download = `IH_Receipt_${s.name.replace(/\s/g, '_')}.png`; a.href = blob; a.click();
+    }
+
+    // Startup
     render();
   </script>
 </body>
