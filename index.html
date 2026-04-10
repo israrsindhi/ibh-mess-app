@@ -12,14 +12,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; color: #0f172a; margin: 0; padding: 0; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; color: #0f172a; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(0,0,0,0.05); }
     .nav-active { color: #059669 !important; transform: translateY(-2px); }
     .nav-active i { background: #ecfdf5; padding: 8px; border-radius: 12px; }
     .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
-    .fade-in { animation: fadeIn 0.3s ease-in; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.2s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     ::-webkit-scrollbar { width: 0px; background: transparent; }
+    input, button { transition: all 0.2s ease; outline: none; }
+    .mess-btn-active { transform: scale(0.95); }
   </style>
 </head>
 <body class="antialiased">
@@ -170,7 +172,6 @@
     let filterMonth = new Date().toISOString().slice(0, 7);
     let messDate = new Date().toISOString().split('T')[0];
     let activeStudentId = null;
-    let mSearchQuery = "";
 
     function changeTab(tab) { 
         currentTab = tab; 
@@ -192,7 +193,8 @@
             const day = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(new Date(a.date));
             counts[day] = (counts[day] || 0) + (a.breakfast?1:0) + (a.lunch?1:0) + (a.dinner?1:0);
         });
-        return Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b, "Monday");
+        const peak = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b, "Monday");
+        return peak;
     }
 
     function render() {
@@ -209,7 +211,6 @@
         else if (currentTab === 'profile') renderProfile(app);
     }
 
-    // --- DASHBOARD ---
     function renderDashboard(el) {
         const day = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(new Date());
         const hour = new Date().getHours();
@@ -244,7 +245,6 @@
         `;
     }
 
-    // --- RESIDENTS ---
     function renderResidents(el) {
         el.innerHTML = `
             <div class="fade-in space-y-6">
@@ -255,8 +255,9 @@
         `;
         const list = document.getElementById('resList');
         const draw = (q="") => {
-            list.innerHTML = state.students.filter(s=>s.name.toLowerCase().includes(q.toLowerCase()) || s.roomName.toLowerCase().includes(q.toLowerCase())).map(s=>`
-                <div onclick="activeStudentId='${s.id}'; changeTab('profile')" class="bg-white p-4 rounded-[2rem] card-shadow flex items-center justify-between">
+            const filtered = state.students.filter(s=>s.name.toLowerCase().includes(q.toLowerCase()) || s.roomName.toLowerCase().includes(q.toLowerCase()));
+            list.innerHTML = filtered.map(s=>`
+                <div onclick="activeStudentId='${s.id}'; changeTab('profile')" class="bg-white p-4 rounded-[2rem] card-shadow flex items-center justify-between active:scale-95 transition-transform">
                     <div class="flex items-center gap-4"><img src="${s.photo}" class="w-12 h-12 rounded-2xl object-cover"><p class="text-sm font-black text-slate-800">${s.name}</p></div>
                     <div class="text-right"><p class="text-[10px] text-slate-400 font-bold uppercase">${s.roomName}</p><i class="fas fa-chevron-right text-slate-200 text-xs mt-1"></i></div>
                 </div>
@@ -266,42 +267,66 @@
         draw();
     }
 
-    // --- MESS WITH SEARCH ---
     function renderMess(el) {
         el.innerHTML = `
             <div class="fade-in space-y-4">
-                <div class="flex justify-between items-center"><h2 class="text-xl font-black text-slate-800">Daily Mess</h2><input type="date" value="${messDate}" onchange="messDate=this.value; render()" class="text-xs font-black bg-white px-3 py-2 rounded-xl border-none card-shadow"></div>
-                <div class="relative"><i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-400"></i><input type="text" id="mSearch" placeholder="Search resident..." class="w-full bg-white border-none py-4 pl-14 pr-6 rounded-2xl text-sm font-semibold card-shadow" value="${mSearchQuery}"></div>
+                <div class="flex justify-between items-center"><h2 class="text-xl font-black text-slate-800">Daily Mess</h2><input type="date" value="${messDate}" id="messDateInput" class="text-xs font-black bg-white px-3 py-2 rounded-xl border-none card-shadow"></div>
+                <div class="relative"><i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-400"></i><input type="text" id="mSearch" placeholder="Search resident..." class="w-full bg-white border-none py-4 pl-14 pr-6 rounded-2xl text-sm font-semibold card-shadow"></div>
                 <div id="mList" class="space-y-3"></div>
             </div>
         `;
+        
         const list = document.getElementById('mList');
-        const draw = () => {
+        const inputDate = document.getElementById('messDateInput');
+        
+        inputDate.onchange = (e) => { messDate = e.target.value; drawMessList(); };
+
+        const drawMessList = () => {
             const q = document.getElementById('mSearch').value.toLowerCase();
-            mSearchQuery = q;
-            list.innerHTML = state.students.filter(s=>s.name.toLowerCase().includes(q)).map(s=>{
-                const a = state.attendance.find(x=>x.studentId===s.id && x.date===messDate) || {breakfast:false, lunch:false, dinner:false};
-                return `<div class="bg-white p-4 rounded-3xl flex items-center justify-between card-shadow">
-                    <p class="text-xs font-black text-slate-800">${s.name}</p>
-                    <div class="flex gap-2">
-                        <button onclick="markMess('${s.id}', 'breakfast')" class="w-9 h-9 rounded-xl font-bold text-[10px] ${a.breakfast?'bg-orange-500 text-white':'bg-slate-100 text-slate-300'}">B</button>
-                        <button onclick="markMess('${s.id}', 'lunch')" class="w-9 h-9 rounded-xl font-bold text-[10px] ${a.lunch?'bg-blue-500 text-white':'bg-slate-100 text-slate-300'}">L</button>
-                        <button onclick="markMess('${s.id}', 'dinner')" class="w-9 h-9 rounded-xl font-bold text-[10px] ${a.dinner?'bg-emerald-500 text-white':'bg-slate-100 text-slate-300'}">D</button>
-                    </div>
-                </div>`;
+            const filtered = state.students.filter(s => s.name.toLowerCase().includes(q));
+            
+            list.innerHTML = filtered.map(s => {
+                const a = state.attendance.find(x => x.studentId === s.id && x.date === messDate) || {breakfast:false, lunch:false, dinner:false};
+                return `
+                    <div class="bg-white p-4 rounded-3xl flex items-center justify-between card-shadow">
+                        <div class="flex flex-col">
+                            <p class="text-xs font-black text-slate-800">${s.name}</p>
+                            <p class="text-[8px] font-bold text-slate-400 uppercase">${s.roomName}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="toggleMessStatus('${s.id}', 'breakfast')" class="w-10 h-10 rounded-xl font-bold text-[10px] transition-all ${a.breakfast?'bg-orange-500 text-white shadow-lg shadow-orange-100':'bg-slate-100 text-slate-400'}">B</button>
+                            <button onclick="toggleMessStatus('${s.id}', 'lunch')" class="w-10 h-10 rounded-xl font-bold text-[10px] transition-all ${a.lunch?'bg-blue-500 text-white shadow-lg shadow-blue-100':'bg-slate-100 text-slate-400'}">L</button>
+                            <button onclick="toggleMessStatus('${s.id}', 'dinner')" class="w-10 h-10 rounded-xl font-bold text-[10px] transition-all ${a.dinner?'bg-emerald-500 text-white shadow-lg shadow-emerald-100':'bg-slate-100 text-slate-400'}">D</button>
+                        </div>
+                    </div>`;
             }).join('');
         };
-        document.getElementById('mSearch').oninput = draw;
-        draw();
+
+        document.getElementById('mSearch').oninput = drawMessList;
+        drawMessList();
     }
 
-    function markMess(id, type) {
-        let a = state.attendance.find(x=>x.studentId===id && x.date===messDate);
-        if(!a) { a = { studentId:id, date:messDate, breakfast:false, lunch:false, dinner:false }; state.attendance.push(a); }
-        a[type] = !a[type]; sync(); render();
+    function toggleMessStatus(sid, type) {
+        let a = state.attendance.find(x => x.studentId === sid && x.date === messDate);
+        if(!a) {
+            a = { studentId: sid, date: messDate, breakfast: false, lunch: false, dinner: false };
+            state.attendance.push(a);
+        }
+        a[type] = !a[type];
+        sync();
+        
+        // Lightweight UI Update instead of full render
+        const btn = event.currentTarget;
+        const colors = { breakfast: 'bg-orange-500', lunch: 'bg-blue-500', dinner: 'bg-emerald-500' };
+        if (a[type]) {
+            btn.classList.remove('bg-slate-100', 'text-slate-400');
+            btn.classList.add(colors[type], 'text-white', 'shadow-lg');
+        } else {
+            btn.classList.add('bg-slate-100', 'text-slate-400');
+            btn.classList.remove(colors[type], 'text-white', 'shadow-lg');
+        }
     }
 
-    // --- RESIDENT PROFILE ---
     function renderProfile(el) {
         const s = state.students.find(x=>x.id===activeStudentId);
         if(!s) return;
@@ -335,32 +360,61 @@
         `;
     }
 
-    // --- FEES ---
     function renderFinance(el) {
-        el.innerHTML = `<div class="fade-in space-y-4">
-            <div class="flex justify-between items-center"><h2 class="text-xl font-black text-slate-800">Fee Ledger</h2><input type="month" value="${filterMonth}" onchange="filterMonth=this.value; render()" class="text-xs font-black bg-white px-3 py-2 rounded-xl border-none card-shadow"></div>
-            <div class="space-y-3">${state.students.map(s=>{
-                const paid = state.payments.filter(p=>p.studentId===s.id && p.month===filterMonth).reduce((sum,p)=>sum+p.total,0);
-                const total = s.hFee+s.mFee;
-                const bal = total - paid;
-                return `<div class="bg-white p-5 rounded-[2rem] flex justify-between items-center card-shadow">
-                    <div><p class="text-sm font-black text-slate-800">${s.name}</p><p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Rent: Rs. ${s.hFee} / Mess: Rs. ${s.mFee}</p></div>
-                    ${bal<=0 ? `<span class="bg-emerald-100 text-emerald-600 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase">Paid</span>` : `<button onclick="collectFee('${s.id}')" class="bg-rose-50 text-rose-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest">Rs. ${bal} Due</button>`}
-                </div>`;
-            }).join('')}</div>
-        </div>`;
+        el.innerHTML = `
+            <div class="fade-in space-y-4">
+                <div class="flex justify-between items-center"><h2 class="text-xl font-black text-slate-800">Fee Ledger</h2><input type="month" value="${filterMonth}" onchange="filterMonth=this.value; render()" class="text-xs font-black bg-white px-3 py-2 rounded-xl border-none card-shadow"></div>
+                <div class="space-y-3">${state.students.map(s=>{
+                    const paid = state.payments.filter(p=>p.studentId===s.id && p.month===filterMonth).reduce((sum,p)=>sum+p.total,0);
+                    const total = s.hFee + s.mFee;
+                    const bal = total - paid;
+                    return `<div class="bg-white p-5 rounded-[2rem] flex justify-between items-center card-shadow">
+                        <div><p class="text-sm font-black text-slate-800">${s.name}</p><p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Rent: Rs. ${s.hFee} / Mess: Rs. ${s.mFee}</p></div>
+                        ${bal<=0 ? `<span class="bg-emerald-100 text-emerald-600 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase">Paid</span>` : `<button onclick="collectFee('${s.id}')" class="bg-rose-50 text-rose-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest">Rs. ${bal} Due</button>`}
+                    </div>`;
+                }).join('')}</div>
+            </div>`;
     }
 
     function collectFee(id) {
         const s = state.students.find(x=>x.id===id);
-        const amt = prompt(`Collect payment for ${s.name}:`, (s.hFee+s.mFee));
+        const paidSoFar = state.payments.filter(p=>p.studentId===s.id && p.month===filterMonth).reduce((sum,p)=>sum+p.total,0);
+        const remaining = (s.hFee + s.mFee) - paidSoFar;
+        
+        const amt = prompt(`Collect payment for ${s.name} (${filterMonth}):`, remaining);
         if(amt && !isNaN(amt)) {
             state.payments.push({ id:'TXN'+Date.now(), studentId:id, month:filterMonth, date:new Date().toLocaleDateString('en-GB'), total:Number(amt) });
             sync(); render();
         }
     }
 
-    // --- MENU TAB ---
+    function sendWhatsApp(id) {
+        const s = state.students.find(x => x.id === id);
+        const paid = state.payments.filter(p => p.studentId === s.id && p.month === filterMonth).reduce((sum, p) => sum + p.total, 0);
+        const total = s.hFee + s.mFee;
+        const bal = total - paid;
+        
+        // Formatting Month Name
+        const dateObj = new Date(filterMonth + "-01");
+        const monthName = dateObj.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+        const msg = `*Assalam-o-Alaikum ${s.name}*\n\n` +
+                    `This is a reminder from *Indus Boys Hostel Sukkur* for the month of *${monthName}*.\n\n` +
+                    `*Fee Summary:*\n` +
+                    `- Total Payable: Rs. ${total}\n` +
+                    `- Amount Paid: Rs. ${paid}\n` +
+                    `---------------------------\n` +
+                    `- *Remaining Balance: Rs. ${bal}*\n` +
+                    `---------------------------\n` +
+                    `Please clear your dues at the office. We appreciate your cooperation.\n` +
+                    `_This is system generated message_\n\n` +
+                    `*Management, Indus Boys Hostel*`;
+
+        const encodedMsg = encodeURIComponent(msg);
+        const phone = s.phone.startsWith('0') ? '92' + s.phone.substring(1) : s.phone;
+        window.open(`https://wa.me/${phone}?text=${encodedMsg}`, '_blank');
+    }
+
     function renderMenu(el) {
         const days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
         el.innerHTML = `<div class="fade-in space-y-6">
@@ -377,7 +431,6 @@
         </div>`;
     }
 
-    // --- REPORTS ---
     function renderReports(el) {
         el.innerHTML = `
             <div class="fade-in space-y-6">
@@ -395,7 +448,6 @@
         `;
     }
 
-    // PDF: Monthly Global Mess Log
     function genGlobalMessLog() {
         const month = document.getElementById('repMonth').value;
         const doc = new jsPDF();
@@ -409,19 +461,16 @@
         doc.save(`Monthly_Mess_Log_${month}.pdf`);
     }
 
-    // PDF: Student Personal Mess Log
     function genStudentMessPdf(id) {
         const s = state.students.find(x=>x.id===id);
-        const month = filterMonth;
         const doc = new jsPDF();
         doc.setFontSize(18); doc.text("INDUS BOYS HOSTEL SUKKUR", 14, 20);
         doc.setFontSize(11); doc.text(`Personal Mess Log: ${s.name} (Room ${s.roomName})`, 14, 28);
-        const data = state.attendance.filter(a=>a.studentId===id && a.date.startsWith(month)).sort((a,b)=>a.date.localeCompare(b.date)).map(a=> [a.date, a.breakfast?'Yes':'-', a.lunch?'Yes':'-', a.dinner?'Yes':'-']);
+        const data = state.attendance.filter(a=>a.studentId===id && a.date.startsWith(filterMonth)).sort((a,b)=>a.date.localeCompare(b.date)).map(a=> [a.date, a.breakfast?'Yes':'-', a.lunch?'Yes':'-', a.dinner?'Yes':'-']);
         doc.autoTable({ head: [['Date', 'Breakfast', 'Lunch', 'Dinner']], body:data, startY:35, headStyles:{fillColor:[249, 115, 22]} });
-        doc.save(`${s.name}_Mess_${month}.pdf`);
+        doc.save(`${s.name}_Mess_${filterMonth}.pdf`);
     }
 
-    // PDF: Generic Reports
     function genPdf(type) {
         const month = document.getElementById('repMonth').value;
         const doc = new jsPDF();
@@ -458,22 +507,6 @@
         doc.save(`Receipt_${s.name}.pdf`);
     }
 
-    function sendWhatsApp(id) {
-        const s = state.students.find(x=>x.id===id);
-        window.open(`https://wa.me/92${s.phone.substring(1)}?text=Assalam-o-Alaikum ${s.name}, this is a reminder from Indus Boys Hostel.`, '_blank');
-    }
-
-    // --- FORM WITH PHOTO UPLOAD ---
-    window.previewPhoto = (input) => {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                document.getElementById('profilePreview').src = e.target.result;
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-    };
-
     function renderForm(el) {
         const isEdit = currentTab === 'edit';
         const s = isEdit ? state.students.find(x=>x.id===activeStudentId) : null;
@@ -482,7 +515,6 @@
         el.innerHTML = `<div class="fade-in bg-white p-8 rounded-[2.5rem] card-shadow">
             <h2 class="text-xl font-black text-slate-800 mb-8 uppercase tracking-widest">${isEdit?'Update':'Register'} Resident</h2>
             <form id="studentForm" class="space-y-4">
-                
                 <div class="flex flex-col items-center mb-6">
                     <div class="relative group cursor-pointer" onclick="document.getElementById('photoInput').click()">
                         <img id="profilePreview" src="${photoUrl}" class="w-24 h-24 rounded-[2rem] object-cover border-4 border-emerald-50 shadow-lg">
@@ -491,25 +523,21 @@
                         </div>
                     </div>
                     <input type="file" id="photoInput" accept="image/*" class="hidden" onchange="previewPhoto(this)">
-                    <p class="text-[10px] font-bold text-slate-400 mt-2 uppercase">Click image to upload</p>
                 </div>
-
-                <input name="name" value="${s?.name||''}" placeholder="Name" required class="w-full p-4 bg-slate-50 rounded-2xl text-sm font-bold border-none">
-                <input name="roomName" value="${s?.roomName||''}" placeholder="Room No" required class="w-full p-4 bg-slate-50 rounded-2xl text-sm font-bold border-none">
-                <input name="phone" value="${s?.phone||''}" placeholder="WhatsApp No" required class="w-full p-4 bg-slate-50 rounded-2xl text-sm font-bold border-none">
+                <input name="name" value="${s?.name||''}" placeholder="Full Name" required class="w-full p-4 bg-slate-50 rounded-2xl text-sm font-bold border-none">
+                <input name="roomName" value="${s?.roomName||''}" placeholder="Room Name (e.g. FFR 01)" required class="w-full p-4 bg-slate-50 rounded-2xl text-sm font-bold border-none">
+                <input name="phone" value="${s?.phone||''}" placeholder="WhatsApp No (03xxxxxxxxx)" required class="w-full p-4 bg-slate-50 rounded-2xl text-sm font-bold border-none">
                 <div class="grid grid-cols-2 gap-4">
-                    <input type="number" name="hFee" value="${s?.hFee||0}" placeholder="Rent" class="w-full p-4 bg-slate-50 rounded-2xl text-sm font-bold border-none">
-                    <input type="number" name="mFee" value="${s?.mFee||0}" placeholder="Mess" class="w-full p-4 bg-slate-50 rounded-2xl text-sm font-bold border-none">
+                    <input type="number" name="hFee" value="${s?.hFee||0}" placeholder="Hostel Fee" class="w-full p-4 bg-slate-50 rounded-2xl text-sm font-bold border-none">
+                    <input type="number" name="mFee" value="${s?.mFee||0}" placeholder="Mess Fee" class="w-full p-4 bg-slate-50 rounded-2xl text-sm font-bold border-none">
                 </div>
-                <button type="submit" class="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black uppercase text-sm tracking-widest">${isEdit?'Save Changes':'Register Resident'}</button>
+                <button type="submit" class="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black uppercase text-sm tracking-widest shadow-lg shadow-emerald-100">${isEdit?'Save Changes':'Register Resident'}</button>
             </form>
         </div>`;
 
         document.getElementById('studentForm').onsubmit = (e) => {
             e.preventDefault();
             const fd = new FormData(e.target);
-            const currentPhotoSrc = document.getElementById('profilePreview').src;
-            
             const data = { 
                 id: isEdit ? activeStudentId : 'ST' + Date.now(), 
                 name: fd.get('name'), 
@@ -517,22 +545,24 @@
                 phone: fd.get('phone'), 
                 hFee: Number(fd.get('hFee')), 
                 mFee: Number(fd.get('mFee')), 
-                photo: currentPhotoSrc, 
+                photo: document.getElementById('profilePreview').src, 
                 joined: s?.joined || new Date().toISOString().split('T')[0] 
             };
-
-            if(isEdit) {
-                state.students = state.students.map(x => x.id === activeStudentId ? data : x);
-            } else {
-                state.students.push(data);
-            }
-            
-            sync(); 
-            changeTab('rooms');
+            if(isEdit) state.students = state.students.map(x => x.id === activeStudentId ? data : x);
+            else state.students.push(data);
+            sync(); changeTab('rooms');
         };
     }
 
-    // Launch App
+    window.previewPhoto = (input) => {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => document.getElementById('profilePreview').src = e.target.result;
+            reader.readAsDataURL(input.files[0]);
+        }
+    };
+
+    // Initialize App
     changeTab('dashboard');
   </script>
 </body>
