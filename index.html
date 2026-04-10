@@ -1,3 +1,5 @@
+--- START OF FILE Paste April 10, 2026 - 12:12PM ---
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -94,6 +96,10 @@
     let filterMonth = new Date().toISOString().slice(0, 7);
     let messDate = new Date().toISOString().split('T')[0];
     let activeStudent = null;
+    
+    // Search states
+    let residentsSearch = "";
+    let messSearch = "";
 
     // --- UTILITIES ---
     const formatWA = (num) => {
@@ -177,40 +183,63 @@
     // --- ROOMS & RESIDENTS ---
     function renderRooms(el) {
       const rooms = {};
-      state.students.forEach(s => {
+      
+      // Filter students first based on search
+      const filteredStudents = state.students.filter(s => 
+        s.name.toLowerCase().includes(residentsSearch.toLowerCase()) || 
+        s.roomName.toLowerCase().includes(residentsSearch.toLowerCase())
+      );
+
+      filteredStudents.forEach(s => {
         if (!rooms[s.roomName]) rooms[s.roomName] = [];
         rooms[s.roomName].push(s);
       });
 
       el.innerHTML = `
-        <div class="space-y-6">
+        <div class="space-y-4">
           <div class="flex justify-between items-center">
              <h2 class="text-xl font-black text-slate-800 tracking-tight">Residents</h2>
              <button onclick="currentTab='add'; render()" class="bg-[#2c7a3f] text-white px-4 py-2 rounded-xl text-[10px] font-bold active-scale shadow-lg shadow-emerald-50"><i class="fas fa-plus mr-1"></i> ADD NEW</button>
           </div>
 
-          ${Object.keys(rooms).length ? Object.keys(rooms).map(room => `
-             <div class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm mb-4">
-                <div class="bg-slate-50 px-5 py-3 flex justify-between items-center border-b border-slate-100">
-                   <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest">${room}</span>
-                   <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">${rooms[room].length} Residents</span>
+          <!-- Search Bar -->
+          <div class="relative">
+             <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+             <input type="text" placeholder="Search student or room..." 
+                    value="${residentsSearch}"
+                    oninput="residentsSearch=this.value; renderRooms(document.getElementById('app'))"
+                    class="w-full bg-white border border-slate-200 py-3 pl-10 pr-4 rounded-2xl text-xs font-bold shadow-sm focus:ring-2 focus:ring-emerald-500 outline-none transition">
+          </div>
+
+          <div id="roomsList">
+            ${Object.keys(rooms).length ? Object.keys(rooms).map(room => `
+               <div class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm mb-4">
+                  <div class="bg-slate-50 px-5 py-3 flex justify-between items-center border-b border-slate-100">
+                     <span class="text-[10px] font-black uppercase text-slate-400 tracking-widest">${room}</span>
+                     <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">${rooms[room].length} Residents</span>
+                  </div>
+                  <div class="divide-y divide-slate-50">
+                     ${rooms[room].map(s => `
+                        <div onclick="activeStudent='${s.id}'; currentTab='profile'; render()" class="px-5 py-4 flex items-center justify-between hover:bg-slate-50 transition cursor-pointer active:bg-slate-100">
+                           <div class="flex items-center gap-4">
+                              <img src="${s.photo || 'https://via.placeholder.com/100'}" class="w-10 h-10 rounded-xl object-cover border border-slate-100 shadow-sm">
+                              <div>
+                                 <p class="text-sm font-bold text-slate-800">${s.name}</p>
+                                 <p class="text-[10px] text-slate-400 font-medium">${s.phone}</p>
+                              </div>
+                           </div>
+                           <i class="fas fa-chevron-right text-slate-200 text-xs"></i>
+                        </div>
+                     `).join('')}
+                  </div>
+               </div>
+            `).join('') : `
+                <div class="text-center py-20">
+                    <i class="fas fa-search text-4xl text-slate-200 mb-4 block"></i>
+                    <p class="text-slate-400 italic">No matching residents found.</p>
                 </div>
-                <div class="divide-y divide-slate-50">
-                   ${rooms[room].map(s => `
-                      <div onclick="activeStudent='${s.id}'; currentTab='profile'; render()" class="px-5 py-4 flex items-center justify-between hover:bg-slate-50 transition cursor-pointer active:bg-slate-100">
-                         <div class="flex items-center gap-4">
-                            <img src="${s.photo || 'https://via.placeholder.com/100'}" class="w-10 h-10 rounded-xl object-cover border border-slate-100 shadow-sm">
-                            <div>
-                               <p class="text-sm font-bold text-slate-800">${s.name}</p>
-                               <p class="text-[10px] text-slate-400 font-medium">${s.phone}</p>
-                            </div>
-                         </div>
-                         <i class="fas fa-chevron-right text-slate-200 text-xs"></i>
-                      </div>
-                   `).join('')}
-                </div>
-             </div>
-          `).join('') : '<div class="text-center py-20"><i class="fas fa-user-slash text-4xl text-slate-200 mb-4 block"></i><p class="text-slate-400 italic">No residents registered.</p></div>'}
+            `}
+          </div>
         </div>
       `;
     }
@@ -359,6 +388,11 @@
 
     // --- MESS ---
     function renderMess(el) {
+      const filteredStudents = state.students.filter(s => 
+        s.name.toLowerCase().includes(messSearch.toLowerCase()) || 
+        s.roomName.toLowerCase().includes(messSearch.toLowerCase())
+      );
+
       el.innerHTML = `
         <div class="space-y-4">
            <div class="flex justify-between items-center">
@@ -366,8 +400,17 @@
               <input type="date" value="${messDate}" onchange="messDate=this.value; render()" class="text-xs font-black border-none bg-white p-3 rounded-xl shadow-sm outline-none">
            </div>
 
-           <div class="space-y-3">
-              ${state.students.map(s => {
+           <!-- Search Room/Student -->
+           <div class="relative">
+              <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+              <input type="text" placeholder="Search Room or Name..." 
+                     value="${messSearch}"
+                     oninput="messSearch=this.value; renderMess(document.getElementById('app'))"
+                     class="w-full bg-white border border-slate-200 py-3 pl-10 pr-4 rounded-2xl text-xs font-bold shadow-sm focus:ring-2 focus:ring-emerald-500 outline-none transition">
+           </div>
+
+           <div class="space-y-3" id="messList">
+              ${filteredStudents.length ? filteredStudents.map(s => {
                 const a = state.attendance.find(at => at.studentId === s.id && at.date === messDate) || {breakfast:false, lunch:false, dinner:false};
                 return `
                    <div class="bg-white p-4 rounded-3xl border border-slate-200 flex items-center justify-between shadow-sm">
@@ -385,7 +428,7 @@
                       </div>
                    </div>
                 `;
-              }).join('')}
+              }).join('') : `<div class="text-center py-10 text-slate-400 text-xs italic">No matching results for attendance.</div>`}
            </div>
         </div>
       `;
@@ -694,7 +737,10 @@
 
     // --- NAVIGATION EVENTS ---
     document.querySelectorAll('.nav-item').forEach(b => b.onclick = () => { currentTab = b.dataset.tab; render(); });
-    document.getElementById('globalBackBtn').onclick = () => { currentTab = (currentTab === 'edit' || currentTab === 'profile') ? 'rooms' : 'dashboard'; render(); };
+    document.getElementById('globalBackBtn').onclick = () => { 
+        currentTab = (currentTab === 'edit' || currentTab === 'profile') ? 'rooms' : 'dashboard'; 
+        render(); 
+    };
     
     // START APP
     render();
