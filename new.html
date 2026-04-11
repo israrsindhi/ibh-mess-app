@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Indus Hostel | Management Pro v9.0</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="https://i.postimg.cc/RFFccnLV/2-removebg-preview.png">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; color: #0f172a; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(0,0,0,0.05); }
+    .nav-active { color: #059669 !important; transform: translateY(-2px); }
+    .nav-active i { background: #ecfdf5; padding: 8px; border-radius: 12px; }
+    .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
+    .fade-in { animation: fadeIn 0.2s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    ::-webkit-scrollbar { width: 0px; background: transparent; }
+    input, button { transition: all 0.2s ease; outline: none; }
+    .mess-btn-active { transform: scale(0.95); }
+  </style>
+</head>
+<body class="antialiased">
+  <div class="min-h-screen pb-32">
+    <!-- Header -->
+    <header class="sticky top-0 z-50 glass px-6 py-4 flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-200">
+          <i class="fas fa-hotel"></i>
+        </div>
+        <div>
+          <h1 class="text-base font-extrabold text-slate-800 leading-tight">Indus Boys Hostel</h1>
+          <p class="text-[9px] uppercase font-bold text-emerald-600 tracking-widest">Management v9.0</p>
+        </div>
+      </div>
+      <button id="globalBackBtn" onclick="goBack()" class="hidden h-10 w-10 bg-white rounded-full flex items-center justify-center text-slate-600 shadow-sm border border-slate-100">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+    </header>
+
+    <main id="app" class="p-4 max-w-lg mx-auto"></main>
+
+    <!-- Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 glass border-t border-slate-200 flex justify-around items-center py-4 z-50 rounded-t-[2rem] shadow-2xl">
+      <button onclick="changeTab('dashboard')" id="nav-dashboard" class="nav-item flex flex-col items-center gap-1 text-slate-400">
+        <i class="fas fa-home text-xl"></i><span class="text-[10px] font-bold">Home</span>
+      </button>
+      <button onclick="changeTab('rooms')" id="nav-rooms" class="nav-item flex flex-col items-center gap-1 text-slate-400">
+        <i class="fas fa-users text-xl"></i><span class="text-[10px] font-bold">Residents</span>
+      </button>
+      <button onclick="changeTab('mess')" id="nav-mess" class="nav-item flex flex-col items-center gap-1 text-slate-400">
+        <i class="fas fa-utensils text-xl"></i><span class="text-[10px] font-bold">Mess</span>
+      </button>
+      <button onclick="changeTab('finance')" id="nav-finance" class="nav-item flex flex-col items-center gap-1 text-slate-400">
+        <i class="fas fa-wallet text-xl"></i><span class="text-[10px] font-bold">Fees</span>
+      </button>
+      <button onclick="changeTab('menu')" id="nav-menu" class="nav-item flex flex-col items-center gap-1 text-slate-400">
+        <i class="fas fa-scroll text-xl"></i><span class="text-[10px] font-bold">Menu</span>
+      </button>
+      <button onclick="changeTab('reports')" id="nav-reports" class="nav-item flex flex-col items-center gap-1 text-slate-400">
+        <i class="fas fa-file-invoice text-xl"></i><span class="text-[10px] font-bold">Reports</span>
+      </button>
+    </nav>
+  </div>
+
+  <script>
+    const { jsPDF } = window.jspdf;
+    const DEFAULT_IMG = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTSw8xcmdG5JjS8OA5jnh1wKttCgibR74gZ0Q&s";
+    const DB_KEY = 'indus_v9_0_data';
+
+    const WEEKLY_MENU = {
+        "Monday": { breakfast: "Tea Partha", lunch: "Aalo", dinner: "Dal Chawal" },
+        "Tuesday": { breakfast: "Tea Partha", lunch: "Sabzi", dinner: "Chicken (Nihari/Red)" },
+        "Wednesday": { breakfast: "Tea Partha", lunch: "Daleem Chawal", dinner: "Aalo Fried" },
+        "Thursday": { breakfast: "Tea Partha", lunch: "Dal Channa", dinner: "Sabzi" },
+        "Friday": { breakfast: "Tea Partha", lunch: "Special Chicken Biryani", dinner: "Dal Mung" },
+        "Saturday": { breakfast: "Tea Partha", lunch: "Channa", dinner: "Aalo Egg" },
+        "Sunday": { breakfast: "Tea with Cookies", lunch: "Aalo Pulao", dinner: "Chicken (Nihari/Red)" }
+    };
+    
+    const initialStudents = [
+        { id: 'ST_001', name: "Abdul Qadir Noonari", roomName: "Extra", phone: "03289906952", hFee: 14000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_002', name: "Imran Dahti", roomName: "Extra", phone: "03173211992", hFee: 10000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_003', name: "Abdul Khalique Mehar", roomName: "FFR 01", phone: "03161381917", hFee: 14000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_004', name: "Irshad", roomName: "FFR 01", phone: "03163216116", hFee: 14000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_005', name: "Tanveer", roomName: "FFR 01", phone: "03312814261", hFee: 13000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_006', name: "Tayyab", roomName: "FFR 01", phone: "03033577833", hFee: 13000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_007', name: "Waqas Noonari", roomName: "FFR 01", phone: "03371275647", hFee: 14000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_008', name: "Qadeer Sundrani", roomName: "FFR 01", phone: "03118403563", hFee: 14000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_009', name: "Ali Zaib", roomName: "FFR 02", phone: "03243149818", hFee: 14000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_010', name: "Raham Ali", roomName: "FFR 02", phone: "03403957440", hFee: 0, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_011', name: "Sunny", roomName: "FFR 02", phone: "03042739605", hFee: 0, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_012', name: "Sherii", roomName: "FFR 02", phone: "0", hFee: 14000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_013', name: "MD. naWaz", roomName: "FFR 02", phone: "0", hFee: 13500, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_014', name: "muzamil", roomName: "FFR 02", phone: "0", hFee: 15000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_015', name: "Ganpat Rai ZU", roomName: "FFR 03", phone: "03083652597", hFee: 14000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_016', name: "Hasnain ZU", roomName: "FFR 03", phone: "03000867456", hFee: 15000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_017', name: "Shafique ZU", roomName: "FFR 03", phone: "03062287273", hFee: 15000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_018', name: "Walli Shah ZU", roomName: "FFR 03", phone: "03002317740", hFee: 15000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_019', name: "Shahzaib ZU", roomName: "FFR 03", phone: "03055391644", hFee: 15000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_020', name: "Bisharatullah", roomName: "GFR 01", phone: "03011639475", hFee: 14000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_021', name: "M. Khan Magasi", roomName: "GFR 01", phone: "03262494893", hFee: 13500, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_022', name: "Sohail Ahmed", roomName: "GFR 01", phone: "", hFee: 14000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_023', name: "Kashif Ahmed", roomName: "GFR 01", phone: "0", hFee: 14000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_024', name: "Munawar", roomName: "GFR 01", phone: "0", hFee: 15000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_025', name: "Ishfaque", roomName: "GFR 01", phone: "0", hFee: 14000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_026', name: "Rajab", roomName: "GFR 01", phone: "0", hFee: 13000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_027', name: "Hizbullah", roomName: "GFR 02", phone: "03114885833", hFee: 14000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_028', name: "Jawad Sheikh", roomName: "GFR 02", phone: "03192832162", hFee: 14000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_029', name: "Nabeel", roomName: "GFR 02", phone: "03363502252", hFee: 14000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_030', name: "Naseem Akram", roomName: "GFR 02", phone: "03153450959", hFee: 14000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_031', name: "Waqar", roomName: "GFR 02", phone: "", hFee: 11000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_032', name: "Dr. Furqan", roomName: "GFR 03", phone: "03172946542", hFee: 15000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_033', name: "Sir Iftikhar", roomName: "GFR 03", phone: "03337304534", hFee: 13000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_034', name: "Touqeer Shah", roomName: "GFR 03", phone: "03010264488", hFee: 15000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_035', name: "Basheer Solangi", roomName: "GFR 04", phone: "03153818760", hFee: 13500, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_036', name: "M. Khan Khoso", roomName: "GFR 04", phone: "03238172485", hFee: 14000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_037', name: "Shafique Lashari", roomName: "GFR 04", phone: "03141144453", hFee: 14000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_038', name: "Zulfiqar Ahmed", roomName: "GFR 04", phone: "", hFee: 13000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_039', name: "Sadiq Ali", roomName: "Partition", phone: "03322432518", hFee: 13000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_040', name: "Sajid Memon", roomName: "Partition", phone: "03113609066", hFee: 13000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_041', name: "G. Hyder", roomName: "Partition", phone: "03296981356", hFee: 13000, mFee: 0, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_042', name: "Dr. Jameel", roomName: "Mess Only", phone: "03452732365", hFee: 0, mFee: 6000, photo: DEFAULT_IMG, joined: "2024-01-01" },
+        { id: 'ST_043', name: "M. Daim", roomName: "Mess Only", phone: "03337361104", hFee: 0, mFee: 6000, photo: DEFAULT_IMG, joined: "2024-01-01" }
+    ];
+
+    let state = JSON.parse(localStorage.getItem(DB_KEY)) || { students: initialStudents, attendance: [], payments: [] };
+    const sync = () => localStorage.setItem(DB_KEY, JSON.stringify(state));
+
+    let currentTab = 'dashboard';
+    let filterMonth = new Date().toISOString().slice(0, 7);
+    let messDate = new Date().toISOString().split('T')[0];
+    let activeStudentId = null;
+
+    function changeTab(tab) { 
+        currentTab = tab; 
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('nav-active'));
+        const navEl = document.getElementById('nav-' + tab);
+        if(navEl) navEl.classList.add('nav-active');
+        render(); 
+    }
+
+    function goBack() { 
+        if(['profile', 'add', 'edit'].includes(currentTab)) changeTab('rooms');
+        else changeTab('dashboard');
+    }
+
+    function getPeakDay() {
+        if (state.attendance.length === 0) return "No Data";
+        const counts = {};
+        state.attendance.forEach(a => {
+            const day = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(new Date(a.date));
+            counts[day] = (counts[day] || 0) + (a.breakfast?1:0) + (a.lunch?1:0) + (a.dinner?1:0);
+        });
+        const peak = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b, "Monday");
+        return peak;
+    }
+
+    function render() {
+        const app = document.getElementById('app');
+        document.getElementById('globalBackBtn').classList.toggle('hidden', !['add', 'profile', 'edit'].includes(currentTab));
+        
+        if (currentTab === 'dashboard') renderDashboard(app);
+        else if (currentTab === 'rooms') renderResidents(app);
+        else if (currentTab === 'mess') renderMess(app);
+        else if (currentTab === 'finance') renderFinance(app);
+        else if (currentTab === 'menu') renderMenu(app);
+        else if (currentTab === 'reports') renderReports(app);
+        else if (currentTab === 'add' || currentTab === 'edit') renderForm(app);
+        else if (currentTab === 'profile') renderProfile(app);
+    }
+
+    function renderDashboard(el) {
+        const day = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(new Date());
+        const hour = new Date().getHours();
+        let mType = hour < 11 ? "breakfast" : hour < 17 ? "lunch" : "dinner";
+        const dish = WEEKLY_MENU[day][mType];
+        const peakDay = getPeakDay();
+
+        el.innerHTML = `
+            <div class="fade-in space-y-6">
+                <div><h2 class="text-2xl font-black text-slate-800">Assalam-o-Alaikum</h2><p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Management Panel v9.0</p></div>
+                
+                <div class="bg-emerald-600 p-6 rounded-[2.5rem] text-white shadow-xl relative overflow-hidden">
+                    <div class="relative z-10">
+                        <p class="text-[10px] font-bold opacity-80 uppercase tracking-widest">Current Serving (${mType})</p>
+                        <h3 class="text-2xl font-black mb-1">${dish}</h3>
+                        <p class="text-xs opacity-90">${day} Menu</p>
+                    </div>
+                    <i class="fas fa-utensils absolute -right-4 -bottom-4 text-8xl opacity-10"></i>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-white p-5 rounded-[2rem] card-shadow text-center">
+                        <p class="text-xl font-black text-slate-800">${state.students.length}</p>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Residents</p>
+                    </div>
+                    <div class="bg-slate-900 p-5 rounded-[2rem] card-shadow text-center text-white">
+                        <p class="text-xl font-black text-emerald-400">${peakDay}</p>
+                        <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Peak Mess Day</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderResidents(el) {
+        el.innerHTML = `
+            <div class="fade-in space-y-6">
+                <div class="flex justify-between items-center"><h2 class="text-xl font-black text-slate-800">Residents</h2><button onclick="changeTab('add')" class="bg-emerald-600 text-white px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest">Add New</button></div>
+                <div class="relative"><i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-400"></i><input type="text" id="resSearch" placeholder="Search by name or room..." class="w-full bg-white border-none py-4 pl-14 pr-6 rounded-2xl text-sm font-semibold card-shadow"></div>
+                <div id="resList" class="grid gap-4"></div>
+            </div>
+        `;
+        const list = document.getElementById('resList');
+        const draw = (q="") => {
+            const filtered = state.students.filter(s=>s.name.toLowerCase().includes(q.toLowerCase()) || s.roomName.toLowerCase().includes(q.toLowerCase()));
+            list.innerHTML = filtered.map(s=>`
+                <div onclick="activeStudentId='${s.id}'; changeTab('profile')" class="bg-white p-4 rounded-[2rem] card-shadow flex items-center justify-between active:scale-95 transition-transform">
+                    <div class="flex items-center gap-4"><img src="${s.photo}" class="w-12 h-12 rounded-2xl object-cover"><p class="text-sm font-black text-slate-800">${s.name}</p></div>
+                    <div class="text-right"><p class="text-[10px] text-slate-400 font-bold uppercase">${s.roomName}</p><i class="fas fa-chevron-right text-slate-200 text-xs mt-1"></i></div>
+                </div>
+            `).join('');
+        };
+        document.getElementById('resSearch').oninput = (e)=>draw(e.target.value);
+        draw();
+    }
+
+    function renderMess(el) {
+        el.innerHTML = `
+            <div class="fade-in space-y-4">
+                <div class="flex justify-between items-center"><h2 class="text-xl font-black text-slate-800">Daily Mess</h2><input type="date" value="${messDate}" id="messDateInput" class="text-xs font-black bg-white px-3 py-2 rounded-xl border-none card-shadow"></div>
+                <div class="relative"><i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-400"></i><input type="text" id="mSearch" placeholder="Search resident..." class="w-full bg-white border-none py-4 pl-14 pr-6 rounded-2xl text-sm font-semibold card-shadow"></div>
+                <div id="mList" class="space-y-3"></div>
+            </div>
+        `;
+        
+        const list = document.getElementById('mList');
+        const inputDate = document.getElementById('messDateInput');
+        inputDate.onchange = (e) => { messDate = e.target.value; drawMessList(); };
+
+        const drawMessList = () => {
+            const q = document.getElementById('mSearch').value.toLowerCase();
+            const filtered = state.students.filter(s => s.name.toLowerCase().includes(q));
+            list.innerHTML = filtered.map(s => {
+                const a = state.attendance.find(x => x.studentId === s.id && x.date === messDate) || {breakfast:false, lunch:false, dinner:false};
+                return `
+                    <div class="bg-white p-4 rounded-3xl flex items-center justify-between card-shadow">
+                        <div class="flex flex-col">
+                            <p class="text-xs font-black text-slate-800">${s.name}</p>
+                            <p class="text-[8px] font-bold text-slate-400 uppercase">${s.roomName}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="toggleMessStatus('${s.id}', 'breakfast')" class="w-10 h-10 rounded-xl font-bold text-[10px] transition-all ${a.breakfast?'bg-orange-500 text-white shadow-lg shadow-orange-100':'bg-slate-100 text-slate-400'}">B</button>
+                            <button onclick="toggleMessStatus('${s.id}', 'lunch')" class="w-10 h-10 rounded-xl font-bold text-[10px] transition-all ${a.lunch?'bg-blue-500 text-white shadow-lg shadow-blue-100':'bg-slate-100 text-slate-400'}">L</button>
+                            <button onclick="toggleMessStatus('${s.id}', 'dinner')" class="w-10 h-10 rounded-xl font-bold text-[10px] transition-all ${a.dinner?'bg-emerald-500 text-white shadow-lg shadow-emerald-100':'bg-slate-100 text-slate-400'}">D</button>
+                        </div>
+                    </div>`;
+            }).join('');
+        };
+        drawMessList();
+        document.getElementById('mSearch').oninput = drawMessList;
+    }
+
+    function toggleMessStatus(sid, type) {
+        let a = state.attendance.find(x => x.studentId === sid && x.date === messDate);
+        if(!a) {
+            a = { studentId: sid, date: messDate, breakfast: false, lunch: false, dinner: false };
+            state.attendance.push(a);
+        }
+        a[type] = !a[type];
+        sync();
+        const btn = event.currentTarget;
+        const colors = { breakfast: 'bg-orange-500', lunch: 'bg-blue-500', dinner: 'bg-emerald-500' };
+        if (a[type]) {
+            btn.classList.remove('bg-slate-100', 'text-slate-400');
+            btn.classList.add(colors[type], 'text-white', 'shadow-lg');
+        } else {
+            btn.classList.add('bg-slate-100', 'text-slate-400');
+            btn.classList.remove(colors[type], 'text-white', 'shadow-lg');
+        }
+    }
+
+    function renderProfile(el) {
+        const s = state.students.find(x=>x.id===activeStudentId);
+        if(!s) return;
+        const payments = state.payments.filter(p=>p.studentId===s.id);
+        el.innerHTML = `
+            <div class="fade-in space-y-6">
+                <div class="bg-white p-8 rounded-[3rem] text-center card-shadow">
+                    <img src="${s.photo}" class="w-24 h-24 rounded-[2rem] mx-auto mb-4 object-cover border-4 border-white shadow-lg">
+                    <h2 class="text-xl font-black text-slate-800">${s.name}</h2>
+                    <p class="text-xs font-bold text-slate-400 uppercase mb-6">${s.roomName} • ${s.phone}</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="genStudentMessPdf('${s.id}')" class="bg-orange-500 text-white p-3 rounded-xl text-[10px] font-black uppercase"><i class="fas fa-file-pdf mr-1"></i> Mess Log</button>
+                        <button onclick="sendWhatsApp('${s.id}')" class="bg-emerald-600 text-white p-3 rounded-xl text-[10px] font-black uppercase"><i class="fab fa-whatsapp mr-1"></i> Message</button>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-3xl card-shadow space-y-4">
+                    <div class="flex justify-between items-center"><p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Fee Records</p><button onclick="collectFee('${s.id}')" class="text-emerald-600 text-[10px] font-black uppercase">+ Add Payment</button></div>
+                    <div class="space-y-2">
+                        ${payments.length ? payments.map(p => `
+                            <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl">
+                                <div><p class="text-xs font-black text-slate-800">Rs. ${p.total}</p><p class="text-[9px] text-slate-400 font-bold">${p.date} (${p.month})</p></div>
+                                <button onclick="genReceipt('${p.id}')" class="text-slate-400 text-[10px] font-black"><i class="fas fa-download"></i></button>
+                            </div>
+                        `).join('') : '<p class="text-center py-4 text-xs font-bold text-slate-300 uppercase tracking-widest">No history</p>'}
+                    </div>
+                </div>
+
+                <button onclick="currentTab='edit'; render()" class="w-full bg-slate-900 text-white p-4 rounded-2xl text-[10px] font-black uppercase">Edit Resident Details</button>
+            </div>
+        `;
+    }
+
+    function renderFinance(el) {
+        el.innerHTML = `
+            <div class="fade-in space-y-4">
+                <div class="flex justify-between items-center"><h2 class="text-xl font-black text-slate-800">Fee Ledger</h2><input type="month" value="${filterMonth}" onchange="filterMonth=this.value; render()" class="text-xs font-black bg-white px-3 py-2 rounded-xl border-none card-shadow"></div>
+                <div class="space-y-3">${state.students.map(s=>{
+                    const paid = state.payments.filter(p=>p.studentId===s.id && p.month===filterMonth).reduce((sum,p)=>sum+p.total,0);
+                    const total = s.hFee + s.mFee;
+                    const bal = total - paid;
+                    return `<div class="bg-white p-5 rounded-[2rem] flex justify-between items-center card-shadow">
+                        <div><p class="text-sm font-black text-slate-800">${s.name}</p><p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Rent: Rs. ${s.hFee} / Mess: Rs. ${s.mFee}</p></div>
+                        ${bal<=0 ? `<span class="bg-emerald-100 text-emerald-600 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase">Paid</span>` : `<button onclick="collectFee('${s.id}')" class="bg-rose-50 text-rose-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest">Rs. ${bal} Due</button>`}
+                    </div>`;
+                }).join('')}</div>
+            </div>`;
+    }
+
+    function collectFee(id) {
+        const s = state.students.find(x=>x.id===id);
+        const paidSoFar = state.payments.filter(p=>p.studentId===s.id && p.month===filterMonth).reduce((sum,p)=>sum+p.total,0);
+        const remaining = (s.hFee + s.mFee) - paidSoFar;
+        const amt = prompt(`Collect payment for ${s.name} (${filterMonth}):`, remaining);
+        if(amt && !isNaN(amt)) {
+            state.payments.push({ id:'TXN'+Date.now(), studentId:id, month:filterMonth, date:new Date().toLocaleDateString('en-GB'), total:Number(amt) });
+            sync(); render();
+        }
+    }
+
+    function sendWhatsApp(id) {
+        const s = state.students.find(x => x.id === id);
+        const paid = state.payments.filter(p => p.studentId === s.id && p.month === filterMonth).reduce((sum, p) => sum + p.total, 0);
+        const total = s.hFee + s.mFee;
+        const bal = total - paid;
+        const monthName = new Date(filterMonth + "-01").toLocaleString('default', { month: 'long', year: 'numeric' });
+        const msg = `*Assalam-o-Alaikum ${s.name}*\n\nThis is a reminder from *Indus Boys Hostel Sukkur* for *${monthName}*.\n\n*Fee Summary:*\n- Total: Rs. ${total}\n- Paid: Rs. ${paid}\n- *Due: Rs. ${bal}*\n\nPlease clear your dues. We appreciate your cooperation.\n\n*Management, Indus Boys Hostel*`;
+        const phone = s.phone.startsWith('0') ? '92' + s.phone.substring(1) : s.phone;
+        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    function renderMenu(el) {
+        const days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+        el.innerHTML = `<div class="fade-in space-y-6">
+            <h2 class="text-xl font-black text-slate-800">Weekly Food Menu</h2>
+            <div class="space-y-4">${days.map(d=>`
+                <div class="bg-white p-5 rounded-[2.5rem] card-shadow">
+                    <p class="text-sm font-black text-slate-800 mb-3">${d}</p>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="bg-slate-50 p-3 rounded-2xl text-center"><p class="text-[7px] font-bold text-slate-400 uppercase mb-1">Breakfast</p><p class="text-[10px] font-black leading-tight">${WEEKLY_MENU[d].breakfast}</p></div>
+                        <div class="bg-slate-50 p-3 rounded-2xl text-center"><p class="text-[7px] font-bold text-slate-400 uppercase mb-1">Lunch</p><p class="text-[10px] font-black leading-tight">${WEEKLY_MENU[d].lunch}</p></div>
+                        <div class="bg-slate-50 p-3 rounded-2xl text-center"><p class="text-[7px] font-bold text-slate-400 uppercase mb-1">Dinner</p><p class="text-[10px] font-black leading-tight">${WEEKLY_MENU[d].dinner}</p></div>
+                    </div>
+                </div>`).join('')}</div>
+        </div>`;
+    }
+
+    function renderReports(el) {
+        el.innerHTML = `
+            <div class="fade-in space-y-6">
+                <h2 class="text-xl font-black text-slate-800">Reports Center</h2>
+                <div class="bg-white p-6 rounded-[2.5rem] card-shadow space-y-4">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Select Month</p>
+                    <input type="month" id="repMonth" class="w-full p-4 bg-slate-50 rounded-2xl text-sm font-bold border-none" value="${filterMonth}">
+                    <div class="grid gap-2">
+                        <button onclick="genPdf('finance')" class="bg-slate-900 text-white p-4 rounded-2xl text-xs font-black uppercase flex justify-between items-center">Monthly Finance <i class="fas fa-file-invoice-dollar"></i></button>
+                        <button onclick="genGlobalMessLog()" class="bg-emerald-600 text-white p-4 rounded-2xl text-xs font-black uppercase flex justify-between items-center">Monthly Mess Activity <i class="fas fa-calendar-alt"></i></button>
+                        <button onclick="genPdf('defaulters')" class="bg-rose-600 text-white p-4 rounded-2xl text-xs font-black uppercase flex justify-between items-center">Defaulters List <i class="fas fa-exclamation-circle"></i></button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function genGlobalMessLog() {
+        const monthStr = document.getElementById('repMonth').value;
+        if (!monthStr) return alert("Select a month");
+        const [year, month] = monthStr.split('-').map(Number);
+        const daysInMonth = new Date(year, month, 0).getDate();
+        const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a3' });
+
+        doc.setFontSize(22); doc.text("INDUS BOYS HOSTEL SUKKUR", 14, 15);
+        doc.setFontSize(12); doc.text(`MONTHLY MESS ACTIVITY LOG: ${new Date(year, month-1).toLocaleString('default', { month: 'long', year: 'numeric' })}`, 14, 22);
+
+        const head1 = [{ content: 'S#', rowSpan: 2 }, { content: 'Resident Name', rowSpan: 2 }];
+        const head2 = [];
+        for (let d = 1; d <= daysInMonth; d++) {
+            head1.push({ content: d.toString(), colSpan: 3, styles: { halign: 'center', fillColor: [5, 150, 105] } });
+            head2.push('B', 'L', 'D');
+        }
+
+        const rooms = [...new Set(state.students.map(s => s.roomName))].sort();
+        const body = [];
+        let sNum = 1;
+
+        rooms.forEach(room => {
+            body.push([{ content: room.toUpperCase(), colSpan: 2 + (daysInMonth * 3), styles: { fillColor: [230, 230, 230], fontStyle: 'bold' } }]);
+            state.students.filter(s => s.roomName === room).forEach(st => {
+                const row = [sNum++, st.name];
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dStr = `${monthStr}-${String(d).padStart(2, '0')}`;
+                    const att = state.attendance.find(a => a.studentId === st.id && a.date === dStr) || {};
+                    row.push(att.breakfast ? '✓' : '', att.lunch ? '✓' : '', att.dinner ? '✓' : '');
+                }
+                body.push(row);
+            });
+        });
+
+        doc.autoTable({
+            head: [head1, head2], body: body, startY: 30, theme: 'grid',
+            styles: { fontSize: 5, cellPadding: 0.3, lineWidth: 0.1, halign: 'center' },
+            columnStyles: { 0: { cellWidth: 8 }, 1: { cellWidth: 35, halign: 'left' } },
+            headStyles: { fillColor: [30, 41, 59], fontSize: 6 }
+        });
+        doc.save(`Indus_Mess_Log_${monthStr}.pdf`);
+    }
+
+    function genStudentMessPdf(id) {
+        const s = state.students.find(x=>x.id===id);
+        const doc = new jsPDF();
+        doc.setFontSize(18); doc.text("INDUS BOYS HOSTEL", 14, 20);
+        doc.setFontSize(11); doc.text(`Mess Log: ${s.name} (${filterMonth})`, 14, 28);
+        const data = state.attendance.filter(a=>a.studentId===id && a.date.startsWith(filterMonth)).sort((a,b)=>a.date.localeCompare(b.date)).map(a=> [a.date, a.breakfast?'✓':'-', a.lunch?'✓':'-', a.dinner?'✓':'-']);
+        doc.autoTable({ head: [['Date', 'B', 'L', 'D']], body:data, startY:35, headStyles:{fillColor:[249, 115, 22]} });
+        doc.save(`${s.name}_Mess.pdf`);
+    }
+
+    function genPdf(type) {
+        const month = document.getElementById('repMonth').value;
+        const doc = new jsPDF();
+        doc.setFontSize(18); doc.text("INDUS BOYS HOSTEL SUKKUR", 14, 20);
+        doc.setFontSize(10); doc.text(`${type.toUpperCase()} REPORT - ${month}`, 14, 28);
+        let head = [], body = [];
+        if(type==='finance') {
+            head = [['Room', 'Name', 'Expected', 'Paid', 'Balance']];
+            body = state.students.map(s => {
+                const paid = state.payments.filter(p=>p.studentId===s.id && p.month===month).reduce((sum,p)=>sum+p.total,0);
+                return [s.roomName, s.name, (s.hFee+s.mFee), paid, (s.hFee+s.mFee)-paid];
+            });
+        } else if(type==='defaulters') {
+            head = [['Room', 'Name', 'Phone', 'Pending']];
+            body = state.students.filter(s=>{
+                const paid = state.payments.filter(p=>p.studentId===s.id && p.month===month).reduce((sum,p)=>sum+p.total,0);
+                return paid < (s.hFee+s.mFee);
+            }).map(s => [s.roomName, s.name, s.phone, (s.hFee+s.mFee)-state.payments.filter(p=>p.studentId===s.id && p.month===month).reduce((sum,p)=>sum+p.total,0)]);
+        }
+        doc.autoTable({ head, body, startY: 35 });
+        doc.save(`${type}_${month}.pdf`);
+    }
+
+    function genReceipt(payId) {
+        const p = state.payments.find(x=>x.id===payId);
+        const s = state.students.find(x=>x.id===p.studentId);
+        const doc = new jsPDF({ unit:'mm', format:[80,100] });
+        doc.setFontSize(12); doc.text("INDUS HOSTEL RECEIPT", 40, 15, {align:'center'});
+        doc.setFontSize(8); doc.text(`Student: ${s.name}`, 10, 30);
+        doc.text(`Room: ${s.roomName}`, 10, 35);
+        doc.text(`Date: ${p.date}`, 10, 40);
+        doc.setFontSize(12); doc.text(`PAID: RS. ${p.total}`, 40, 60, {align:'center'});
+        doc.save(`Receipt_${s.name}.pdf`);
+    }
+
+    function renderForm(el) {
+        const isEdit = currentTab === 'edit';
+        const s = isEdit ? state.students.find(x=>x.id===activeStudentId) : null;
+        el.innerHTML = `<div class="fade-in bg-white p-8 rounded-[2.5rem] card-shadow">
+            <h2 class="text-xl font-black text-slate-800 mb-8 uppercase tracking-widest">${isEdit?'Update':'Register'} Resident</h2>
+            <form id="studentForm" class="space-y-4">
+                <div class="flex flex-col items-center mb-6" onclick="document.getElementById('photoInput').click()">
+                    <img id="profilePreview" src="${s?.photo||DEFAULT_IMG}" class="w-24 h-24 rounded-[2rem] object-cover border-4 border-emerald-50 shadow-lg">
+                    <input type="file" id="photoInput" accept="image/*" class="hidden" onchange="previewPhoto(this)">
+                </div>
+                <input name="name" value="${s?.name||''}" placeholder="Full Name" required class="w-full p-4 bg-slate-50 rounded-2xl text-sm font-bold border-none">
+                <input name="roomName" value="${s?.roomName||''}" placeholder="Room Name" required class="w-full p-4 bg-slate-50 rounded-2xl text-sm font-bold border-none">
+                <input name="phone" value="${s?.phone||''}" placeholder="WhatsApp No" required class="w-full p-4 bg-slate-50 rounded-2xl text-sm font-bold border-none">
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="number" name="hFee" value="${s?.hFee||0}" placeholder="Hostel Fee" class="w-full p-4 bg-slate-50 rounded-2xl text-sm font-bold border-none">
+                    <input type="number" name="mFee" value="${s?.mFee||0}" placeholder="Mess Fee" class="w-full p-4 bg-slate-50 rounded-2xl text-sm font-bold border-none">
+                </div>
+                <button type="submit" class="w-full bg-emerald-600 text-white py-5 rounded-2xl font-black uppercase text-sm shadow-lg">${isEdit?'Save Changes':'Register'}</button>
+            </form>
+        </div>`;
+        document.getElementById('studentForm').onsubmit = (e) => {
+            e.preventDefault();
+            const fd = new FormData(e.target);
+            const data = { 
+                id: isEdit ? activeStudentId : 'ST' + Date.now(), 
+                name: fd.get('name'), roomName: fd.get('roomName'), phone: fd.get('phone'), 
+                hFee: Number(fd.get('hFee')), mFee: Number(fd.get('mFee')), 
+                photo: document.getElementById('profilePreview').src, joined: s?.joined || new Date().toISOString().split('T')[0] 
+            };
+            if(isEdit) state.students = state.students.map(x => x.id === activeStudentId ? data : x);
+            else state.students.push(data);
+            sync(); changeTab('rooms');
+        };
+    }
+
+    window.previewPhoto = (input) => {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => document.getElementById('profilePreview').src = e.target.result;
+            reader.readAsDataURL(input.files[0]);
+        }
+    };
+
+    changeTab('dashboard');
+  </script>
+</body>
+</html>
